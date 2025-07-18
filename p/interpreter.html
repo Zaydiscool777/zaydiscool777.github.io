@@ -1,0 +1,1594 @@
+<html><!--p/view-page-source.com-xn--wxa.land_convey_run.html#eyJjIjoiMSsyXG4gLn0iLCJ2IjoxLCJpIjoiMyAxNCJ9.html-->
+  <meta charset="UTF-8" />
+  <head>
+    <title>convey - interpreter</title>
+    <link rel="icon" href="data:;base64,=" />
+    <script type="text/javascript" src="LZWEncoder.js"></script>
+    <script type="text/javascript" src="NeuQuant.js"></script>
+    <script type="text/javascript" src="GIFEncoder.js"></script>
+    <script type="text/javascript">
+      function getArrayMutations(arr, perms = [], len = arr.length) {
+        if (len === 1) perms.push(arr.slice(0));
+
+        for (let i = 0; i < len; i++) {
+          getArrayMutations(arr, perms, len - 1);
+
+          len % 2 // parity dependent adjacent elements swap
+            ? ([arr[0], arr[len - 1]] = [arr[len - 1], arr[0]])
+            : ([arr[i], arr[len - 1]] = [arr[len - 1], arr[i]]);
+        }
+
+        return perms;
+      }
+
+      var interval;
+      var canvas, ctx;
+      var pout_was_number = false;
+      const log = (x) => console.log(x);
+      const error = (x) => console.log("error: " + x);
+      const clone = (x) => JSON.parse(JSON.stringify(x));
+      const shift = (s, x) => s.slice(x).concat(s.slice(0, x));
+      const print = (x, ents = []) => {
+        x = clone(x);
+        ents.forEach(
+          (e, i) =>
+            (x[e.p[0]][e.p[1]] =
+              typeof e.v == "number" ? String(e.v % 10) : e.v)
+        );
+        log(x.map((y) => y.join("")).join("\n"));
+      };
+      const dirstr = ["right", "down", "left", "up"];
+      const peq = (a, b) =>
+        a && b && a[0] == b[0] && a[1] == b[1] && a[2] == b[2];
+      const padd = (a, b) => [a[0] + b[0], a[1] + b[1], a[2] + b[2]];
+      const $$ = (a, p, v) => {
+        if (v !== undefined) return (a[p[0]][p[1]][p[2]] = v);
+        else return a[p[0]][p[1]][p[2]];
+      };
+      const pos_to_str = (xy) => xy.join("|");
+      const str_to_pos = (s) => s.split("|").map(Number);
+      const RIGHT = 0,
+        DOWN = 1,
+        LEFT = 2,
+        UP = 3;
+
+      const dir = ">v<^";
+      const UNDECIDED = -1,
+        NONE = 0,
+        IN = 1,
+        OUT = 2;
+
+      const dird = [
+        [0, 0, 1],
+        [0, 1, 0],
+        [0, 0, -1],
+        [0, -1, 0],
+      ];
+      function range(a, b) {
+        let r = [];
+        if (b === undefined) for (let i = 0; i < a; i++) r.push(i);
+        else for (let i = a; i < b; i++) r.push(i);
+        return r;
+      }
+
+      let MAIN;
+      var running = false;
+      var encoder, encoderstep;
+
+      function compile(not_set_hash) {
+        running = false;
+        boxes = [];
+        if (interval) clearInterval(interval), (interval = 0);
+        canvas = document.querySelector("canvas");
+        ctx = canvas.getContext("2d");
+
+        let code = document.querySelector("#program").value;
+        document.querySelector("#gif").src = "";
+        document.querySelector("#codegolf").value = "";
+        document.querySelector("#codegolf").hidden = true;
+        document.querySelector("#stdout").value = "";
+        let stdin_queue = parse_stdin(document.querySelector("#stdin").value);
+        if (!not_set_hash)
+          window.location.hash =
+            "#" +
+            btoa(
+              JSON.stringify({
+                c: code,
+                v: 1,
+                i: document.querySelector("#stdin").value,
+              })
+            );
+        running = true;
+        MAIN = parse(code);
+        if (MAIN) MAIN.stdin_queue = stdin_queue;
+        draw(MAIN);
+      }
+
+      function parse_stdin(s) {
+        return (stdin_queue = s
+          .split("\n")
+          .map((line) =>
+            Array.from(line.matchAll(/-?\d+(\.\d+)?|'[^']*'/g))
+              .map((x) => x[0])
+              .flatMap((x) =>
+                x[0] == "'" ? x.slice(1, -1).split("") : [Number(x)]
+              )
+          )
+          .filter((x) => x.length));
+      }
+
+      function read_url(init) {
+        let blob;
+        try {
+          blob = JSON.parse(atob(window.location.hash.substr(1)));
+        } catch {}
+        if (blob && blob.i && blob.i.length)
+          document.querySelector("#stdin").value = blob.i;
+        if (blob && blob.c && blob.c.length)
+          document.querySelector("#program").value = blob.c;
+        compile(!blob);
+        if (!blob) {
+          interval = setInterval((x) => {
+            step(MAIN);
+            draw(MAIN);
+            if (!running) clearInterval(interval), (interval = 0);
+          }, 400);
+        }
+      }
+
+      let var_defined;
+      function* over_all(p) {
+        for (let z = 0; z < p.length; z++)
+          for (let y = 0; y < p[z].length; y++)
+            for (let x = 0; x < p[z][y].length; x++) yield [z, y, x];
+      }
+
+      function parse(code) {
+        let table = {
+          "01": "}]",
+          10: "{[",
+          11: ">v<^&.",
+          21: "~!+-*%;|,=()",
+          12: "?/\\",
+          22: "@#",
+        };
+        let def_machine = {};
+        for (key in table)
+          for (name of table[key].match(/[^ ][.:]?/g))
+            def_machine[name] = {
+              name: name,
+              iport: Number(key[0]),
+              oport: Number(key[1]),
+            };
+
+        let ops = Array.from(
+            "0123456789>v<^_~@.`!+-*%;:#$&?|}{\",/~[]=()ABCDEFGHIJKLMNOPQRSTUWXYZabcdefghijklmnopqrstuwxzö'\\"
+          ),
+          ipn = Array.from(
+            "0000000000111102211222222222112101211012221111111111111111111111111________________________101"
+          ).map(Number),
+          ipm = Array.from(
+            "1111111111111112211222222222112101211012221111111111111111111111111________________________111"
+          ).map(Number),
+          opn = Array.from(
+            "1111111111111111211111111121121012121101111111111111111111111111111________________________112"
+          ).map(Number),
+          opm = Array.from(
+            "1111111111111111211111111121121012121101111111111111111111111111111________________________112"
+          ).map(Number);
+
+        let p = `\n${code}\n`.split("\n");
+        let h = p.length,
+          w = Math.max(...p.map((x) => x.length));
+        p = p.map((x) => x.padEnd(w)).map((x) => Array.from(` ${x} `));
+        p = [p];
+        w += 2;
+        var into = false;
+        let dirs = [
+          clone(p[0]).map((row) =>
+            row.map((x) => [UNDECIDED, UNDECIDED, UNDECIDED, UNDECIDED])
+          ),
+        ];
+        let state = [clone(p[0]).map((row) => row.map((x) => undefined))];
+
+        const op$ = (yx) => ops.indexOf(p$(yx));
+        const s$ = (yx, v) => $$(state, yx, v);
+        const dirs$ = (yx, v) => $$(dirs, yx, v);
+        const d$ = (yx, v) => $$(dirs, yx, v);
+        const io$ = (yx, v) => $$(io, yx, v);
+        const p$ = (yx, v) => $$(p, yx, v);
+
+        /* save strings */
+        let strings = [];
+        for (let z = 0; z < p.length; z++)
+          for (let y = 0; y < p[z].length; y++)
+            for (let x = 0; x < p[z][y].length; x++)
+              if (p$([z, y, x]) == "'") {
+                let string = { p: [z, y, x + 1], s: "", l: 0 };
+                let escaped = false;
+                for (
+                  x = x + 1;
+                  x < w && (p$([z, y, x]) != "'" || escaped);
+                  x++
+                ) {
+                  if (!escaped) {
+                    if (p$([z, y, x]) == "\\") escaped = true;
+                    else string.s += p$([z, y, x]);
+                  } else {
+                    let c = p$([z, y, x]);
+                    if (c == "n") string.s += "\n";
+                    else if (c == "t") string.s += "\t";
+                    else if (c == "\\") string.s += "\\";
+                    else string.s += c;
+                    escaped = false;
+                  }
+                  string.l++;
+                  p$([z, y, x], "ö");
+                }
+                x++;
+                strings.push(string);
+              }
+
+        let cells = p[0]
+          .flatMap((row, y) =>
+            row.map((cell, x) => [ops.indexOf(cell), [0, y, x]])
+          )
+          .filter((x) => x[0] >= 0)
+          .map((x) => x[1]);
+
+        const port_left = (yx, way) => {
+          let op = ops.indexOf(p$(yx));
+          let already_occupied = d$(yx).filter((x) => x == way).length;
+          return Math.max(0, (way == IN ? ipm : opm)[op] - already_occupied);
+        };
+
+        var_defined = [];
+        var_defined.length = 26;
+        var_defined.fill(false);
+
+        const is_variable = (c) => c >= "a" && c <= "z" && c != "v";
+        const is_definition = (c) => c >= "A" && c <= "Z" && c != "V";
+
+        var new_function = true;
+        while (new_function) {
+          var new_function = false;
+          var changed = true;
+          while (changed) {
+            changed = false;
+            for (let yx of cells) {
+              let c = p$(yx);
+              if (is_variable(c) && !var_defined[c.charCodeAt(0) - 97])
+                continue;
+              let cd = d$(yx),
+                next = dird.map((x) => padd(yx, x));
+
+              let mnip = next.map(
+                (oyx, i) =>
+                  cd[i] == OUT ||
+                  (cd[i] == UNDECIDED &&
+                    port_left(oyx, IN) &&
+                    (!dir.includes(p$(oyx)) ||
+                      dir.indexOf(p$(oyx)) != (i + 2) % 4) &&
+                    (!dir.includes(p$(yx)) || dir.indexOf(p$(yx)) == i))
+              );
+
+              let mnop = next.map(
+                (oyx, i) =>
+                  cd[i] == IN ||
+                  (cd[i] == UNDECIDED &&
+                    port_left(oyx, OUT) &&
+                    (!dir.includes(p$(oyx)) ||
+                      dir.indexOf(p$(oyx)) == (i + 2) % 4) &&
+                    (!dir.includes(p$(yx)) || dir.indexOf(p$(yx)) != i))
+              );
+
+              var poss = [];
+              for (let i = ipn[op$(yx)]; i <= ipm[op$(yx)]; i++)
+                for (let o = opn[op$(yx)]; o <= opm[op$(yx)]; o++) {
+                  var s = ("1".repeat(i) + "2".repeat(o)).padEnd(4, "0");
+                  var ss = Array.from(
+                    new Set(
+                      getArrayMutations(Array.from(s)).map((x) => x.join(""))
+                    )
+                  ).map((x) => Array.from(x).map((y) => Number(y)));
+
+                  ss = ss.filter((ds) =>
+                    ds.every((io, d) => {
+                      return (
+                        cd[d] == io ||
+                        (cd[d] == UNDECIDED &&
+                          (io == NONE ||
+                            (io == IN &&
+                              mnop[d] &&
+                              (!"#".includes(p$(yx)) ||
+                                ds[(d + 2) % 4] == 2)) ||
+                            (io == OUT &&
+                              mnip[d] &&
+                              (!"#".includes(p$(yx)) || ds[(d + 2) % 4] == 1))))
+                      );
+                    })
+                  );
+
+                  poss = poss.concat(ss);
+                }
+
+              if (poss.length == 0) continue;
+
+              var init = poss[0];
+              poss.slice(1).forEach((pos) =>
+                pos.forEach((io, d) => {
+                  init[d] = io == init[d] ? init[d] : UNDECIDED;
+                })
+              );
+
+              init.forEach((io, d) => {
+                if (io != UNDECIDED && cd[d] != io) {
+                  changed = true;
+                  cd[d] = io;
+                  if (io != NONE)
+                    d$(padd(yx, dird[d]))[(d + 2) % 4] = io == OUT ? IN : OUT;
+                }
+              });
+            }
+          }
+
+          let z = 0;
+          for (let y = 0; y < h; y++)
+            for (let x = 0; x < w; x++) {
+              let yx = [z, y, x];
+              let var_i = p$(yx).charCodeAt(0) - 65;
+              if (
+                p$(yx) >= "A" &&
+                p$(yx) <= "Z" &&
+                p$(yx) != "V" &&
+                !var_defined[var_i]
+              ) {
+                let tree = {};
+                let all_connected = true;
+                const add_to_tree = (yx) => {
+                  if (pos_to_str(yx) in tree) return;
+                  tree[pos_to_str(yx)] = true;
+                  if (dirs$(yx).every((d) => d >= 0)) {
+                    dirs$(yx).forEach((io, d) => {
+                      if (io > 0) add_to_tree(padd(yx, dird[d]));
+                    });
+                  } else {
+                    all_connected = false;
+                  }
+                };
+                add_to_tree(yx);
+
+                if (!all_connected) continue;
+                let ps = Object.keys(tree).map(str_to_pos);
+
+                var_defined[var_i] = ps;
+                let inc = ps.filter((x) => p$(x) == "{").length;
+                let outc = ps.filter((x) => p$(x) == "}").length;
+                let op_i = ops.indexOf(p$(yx).toLowerCase());
+                ipn[op_i] = ipm[op_i] = inc;
+                opn[op_i] = opm[op_i] = outc;
+                new_function = true;
+              }
+            }
+        }
+
+        let unresolved = cells.filter((yx) => {
+          let ins = d$(yx).filter((x) => x == IN).length,
+            outs = d$(yx).filter((x) => x == OUT).length,
+            op = op$(yx);
+          return !(
+            ipn[op] <= ins &&
+            ins <= ipm[op] &&
+            opn[op] <= outs &&
+            outs <= opm[op]
+          );
+        });
+        if (unresolved.length) {
+          running = false;
+          console.log(
+            "Unresolved: ",
+            unresolved.map((xy) => [...xy, p$(xy)])
+          );
+        }
+
+        boxes = [];
+        for (let x of strings) {
+          var remove_end;
+          let end = padd(x.p, [0, 0, x.l]),
+            start = padd(x.p, [0, 0, -1]);
+          if (d$(start).indexOf(IN) == -1) remove_end = start;
+          if (d$(end).indexOf(IN) == -1) remove_end = end;
+          if (remove_end) {
+            for (var i = 0; i < x.l + 1; i++) {
+              p[x.p[0]][x.p[1]][x.p[2] + i] =
+                dir[dirs[x.p[0]][x.p[1]][x.p[2] + i].indexOf(OUT)];
+            }
+            p$(start, "'");
+            s$(start, x.s);
+          } else {
+            p$(start, dir[d$(start).indexOf(OUT)]);
+            p$(end, dir[d$(end).indexOf(OUT)]);
+            for (let i = 0; i < x.l; i++) {
+              if (i < x.s.length)
+                boxes.push({
+                  v: x.s[i],
+                  p: padd(x.p, [0, 0, Number(i)]),
+                  d: d$(x.p).indexOf(OUT),
+                });
+              p[x.p[0]][x.p[1]][x.p[2] + Number(i)] =
+                dir[dirs[x.p[0]][x.p[1]][x.p[2] + Number(i)].indexOf(OUT)];
+            }
+          }
+        }
+
+        var blocked = clone(p).map((row) => row.map((x) => false));
+        var c;
+        let z = 0;
+        for (let y = 0; y < h; y++)
+          for (let x = 0; x < w; x++)
+            if ("0123456789".includes((c = p[z][y][x]))) {
+              let tiles = [];
+              let d = dirs[z][y][x].indexOf(OUT);
+              let final = [z, y, x];
+              if (dirs[z][y][x].indexOf(IN) >= 0) p[z][y][x] = dir[d];
+              var n = Number(c),
+                t;
+              p[z][y][x] = dir[d];
+              if (dirs[z][y][x][RIGHT] > 0)
+                for (
+                  let x2 = x + 1;
+                  x2 < w && "0123456789".includes((t = p[z][y][x2]));
+                  x2++
+                ) {
+                  (p[z][y][x2] = dir[d]), (n = n * 10 + Number(t));
+                  if (dirs[z][y][x][LEFT] == OUT) final = [z, y, x2];
+                }
+              if (d$(final).indexOf(IN) == -1) {
+                s$(final, n);
+                p$(final, "0");
+              }
+              boxes.push({ v: n, p: final, d: d });
+              y = final[1];
+              x = final[2];
+            }
+
+        for (yx of over_all(p)) {
+          if (p$(yx) == " ") continue;
+          let dot = d$(yx).findIndex(
+            (x, d) => x == OUT && p$(padd(yx, dird[d])) == "."
+          );
+          if (dot >= 0) p$(yx, p$(yx) + "."), p$(padd(yx, dird[dot]), dir[dot]);
+        }
+
+        for (yx of over_all(p)) {
+          if (p$(yx) == "_" && d$(yx).indexOf(IN) > -1) {
+            boxes.push({ v: "empty", p: yx, d: d$(yx).indexOf(OUT) });
+            p$(yx, dir[d$(yx).indexOf(OUT)]);
+          }
+        }
+
+        for (yx of over_all(p)) {
+          const initial_states = {
+            "/.": { i: 0, a: false },
+            "&": { stack: [] },
+            "~.": { stack: [], batch: 0 },
+            ":": 0,
+            ";": 1,
+            "\\": 0,
+            "~": 0,
+            "{": 0,
+            "!": { v: null, t: 0 },
+          };
+          if (p$(yx) in initial_states) s$(yx, clone(initial_states[p$(yx)]));
+        }
+
+        for (let vi = 0; vi < 26; vi++) {
+          if (!var_defined[vi]) continue;
+          let ps = var_defined[vi];
+          let y0 = Math.min(...ps.map((x) => x[1]));
+          let y1 = Math.max(...ps.map((x) => x[1]));
+          let x0 = Math.min(...ps.map((x) => x[2]));
+          let x1 = Math.max(...ps.map((x) => x[2]));
+          let h = y1 - y0,
+            w = x1 - x0;
+
+          let _p = [],
+            _dirs = [],
+            _state = [],
+            _boxes = [];
+          let in_ports = [],
+            out_ports = [];
+          for (let y = y0; y <= y1; y++) {
+            _p.push([]), _dirs.push([]), _state.push([]);
+            for (let x = x0; x <= x1; x++) {
+              if (ps.some((yx) => peq(yx, [z, y, x]))) {
+                _p[y - y0].push(p[z][y][x]);
+                _dirs[y - y0].push(dirs[z][y][x]);
+                _state[y - y0].push(state[z][y][x]);
+
+                if (p[z][y][x] == "{") in_ports.push([0, y - y0, x - x0]);
+                if (p[z][y][x] == "}") out_ports.push([0, y - y0, x - x0]);
+
+                p[z][y][x] = " ";
+                dirs[z][y][x] = [UNDECIDED, UNDECIDED, UNDECIDED, UNDECIDED];
+                state[z][y][x] = undefined;
+
+                _boxes.push(...boxes.filter((b) => peq(b.p, [z, y, x])));
+                boxes = boxes.filter((b) => !peq(b.p, [z, y, x]));
+              } else {
+                _p[y - y0].push(" ");
+                _dirs[y - y0].push([
+                  UNDECIDED,
+                  UNDECIDED,
+                  UNDECIDED,
+                  UNDECIDED,
+                ]);
+                _state[y - y0].push(undefined);
+              }
+            }
+          }
+
+          _boxes.forEach((b) => (b.p = padd(b.p, [0, -y0, -x0])));
+
+          var_defined[vi] = {
+            in_ports: in_ports,
+            out_ports: out_ports,
+            p: _p,
+            dirs: _dirs,
+            state: _state,
+            boxes: _boxes,
+          };
+        }
+
+        return {
+          p: p,
+          dirs: dirs,
+          state: state,
+          boxes: boxes,
+        };
+      }
+
+      const step = (STATE) => {
+        let shall_activate = [],
+          p = STATE.p,
+          dirs = STATE.dirs,
+          state = STATE.state,
+          boxes = STATE.boxes;
+
+        const op$ = (yx) => ops.indexOf(p$(yx));
+        const s$ = (yx, v) => $$(state, yx, v);
+        const p$ = (yx, v) => $$(p, yx, v);
+        const d$ = (yx, v) => $$(dirs, yx, v);
+        const in_ports = (yx) =>
+          (d$(yx).some((io, d) => io == OUT && p$(padd(dird[d], yx)) == "`")
+            ? [0, 1, 2, 3]
+            : [3, 2, 1, 0]
+          ).filter((d) => d$(yx)[d] == IN);
+        const out_ports = (yx) =>
+          (!d$(yx).some((io, d) => io == OUT && p$(padd(dird[d], yx)) == "`")
+            ? [0, 1, 2, 3]
+            : [3, 2, 1, 0]
+          ).filter((d) => d$(yx)[d] == OUT);
+
+        /*
+const in_ports = yx => [3,2,1,0].filter(d=>d$(yx)[d]==IN);
+const out_ports = yx => [0,1,2,3].filter(d=>d$(yx)[d]==OUT);
+*/
+        const generate_function = (yx) => {
+          if (s$(yx)) return s$(yx);
+          let var_i = p$(yx).charCodeAt(0) - 97;
+
+          let next = JSON.parse(JSON.stringify(var_defined[var_i]));
+          p.push(next.p);
+          dirs.push(next.dirs);
+          state.push(next.state);
+          boxes.push(next.boxes);
+
+          s$(yx, {
+            parent_out_ports: out_ports(yx).map((d) => yx), //.map(x=>padd(yx,dird[x])),
+            parent_in_ports: in_ports(yx).map((x) => padd(yx, dird[x])),
+            out_ports: next.out_ports.map((x) => {
+              x[0] = p.length - 1;
+              return x;
+            }),
+            in_ports: next.in_ports.map((x) => {
+              x[0] = p.length - 1;
+              return x;
+            }),
+          });
+
+          s$(yx).in_ports.map((port, i) => s$(port, s$(yx).parent_in_ports[i]));
+          s$(yx).out_ports.map((port, i) =>
+            s$(port, s$(yx).parent_out_ports[i])
+          );
+          return s$(yx);
+        };
+
+        if (!running) return;
+        var stays = [],
+          will_move = [];
+        wantsto = boxes.map((b) => [b.p, b.d, b]);
+        const has_all_waiting = (yx, rec_proctection) =>
+          in_ports(yx).every((ipd) =>
+            wantsto.some((z) => {
+              let ip = padd(yx, dird[ipd]);
+              if (!peq(ip, z[0])) return false;
+              if (z[1] == -1) {
+                var recrec = clone(rec_proctection);
+                recrec.push(yx);
+                if (out_ports(z[0])[0] == (ipd + 2) % 4) return true;
+                else if (
+                  !is_free(z[0], padd(z[0], dird[out_ports(z[0])[0]]), recrec)
+                )
+                  return true;
+                return false;
+              } else {
+                return peq(yx, padd(z[0], dird[z[1]]));
+              }
+            })
+          );
+        const get_box = (c) => boxes.filter((b) => peq(b.p, c));
+
+        let is_free_memo = [];
+        const is_free = (from, yx, rec_proctection) => {
+          let key = pos_to_str(from ?? [-1, 0, 0]) + "|" + pos_to_str(yx);
+          if (key in is_free_memo) return is_free_memo[key];
+          return (is_free_memo[key] = is_free_backend(
+            from,
+            yx,
+            rec_proctection
+          ));
+        };
+
+        const is_free_backend = (from, yx, rec_proctection) => {
+          var is_occupied = false;
+          var recrec = clone(rec_proctection);
+          recrec.push(yx);
+          for (b of boxes) if (peq(b.p, yx)) is_occupied = true;
+          if (is_occupied) {
+            if (p$(yx) == "&") {
+              return true;
+            } else if (
+              p$(yx) == "~." &&
+              !s$(yx).blocking &&
+              from == padd(yx, dird[in_ports(yx)[0]])
+            ) {
+              return true;
+            } else {
+              var wants_move = false;
+              let fromd = -1;
+              if (from) {
+                try {
+                  fromd =
+                    (dird
+                      .map((d, i) => [i, padd(from, d)])
+                      .filter((x) => peq(x[1], yx))[0][0] +
+                      2) %
+                    4;
+                } catch {
+                  fromd = -1;
+                }
+              }
+              if (p$(yx) == "#") {
+                console.log(fromd, in_ports(yx), out_ports(yx));
+              }
+
+              let all_ok = wantsto
+                .filter((wants_move) => peq(wants_move[0], yx))
+                .filter(
+                  (wants_move) =>
+                    p$(yx) != "#" ||
+                    (fromd == in_ports(yx)[0] &&
+                      wants_move[1] == (in_ports(yx)[0] + 2) % 4) ||
+                    (fromd == in_ports(yx)[1] &&
+                      wants_move[1] == (in_ports(yx)[1] + 2) % 4)
+                )
+                .every((wants_move) => {
+                  var already_checked = false;
+                  for (z of rec_proctection)
+                    if (peq(z, yx)) already_checked = z;
+                  if (!already_checked) {
+                    if (wants_move[1] == -1) {
+                      if (p$(yx) == "?") {
+                        wants_move[1] = out_ports(wants_move[0])[0];
+                        if (
+                          is_free(
+                            wants_move[0],
+                            padd(wants_move[0], dird[wants_move[1]]),
+                            recrec
+                          )
+                        ) {
+                          wants_move[2].d = wants_move[1];
+                          return true;
+                        }
+                        wants_move[1] = out_ports(wants_move[0])[1];
+                        if (
+                          is_free(
+                            wants_move[0],
+                            padd(wants_move[0], dird[wants_move[1]]),
+                            recrec
+                          )
+                        ) {
+                          wants_move[2].d = wants_move[1];
+                          return true;
+                        }
+                        wants_move[1] = out_ports(wants_move[0])[0];
+                        wants_move[2].d = wants_move[1];
+                        return false;
+                      } else {
+                        return false;
+                      }
+                    } else {
+                      let next_pos = padd(wants_move[0], dird[wants_move[1]]);
+                      if (!is_free(wants_move[0], next_pos, recrec))
+                        return false;
+                    }
+                  }
+                  return true;
+                });
+              if (!all_ok) return false;
+            }
+          }
+
+          let c = p$(yx);
+          if (!c || c == " ") return false;
+          let ips = in_ports(yx).map((ipd) => padd(yx, dird[ipd])),
+            ops = out_ports(yx).map((opd) => padd(yx, dird[opd])),
+            ibs = ips
+              .map((u) =>
+                get_box(u).filter(
+                  (x) => x.d < 0 || peq(yx, padd(x.p, dird[x.d]))
+                )
+              )
+              .map((x) => x[0])
+              .map(
+                (x) =>
+                  x &&
+                  !x.timeout &&
+                  (x.d == -1 ||
+                    (x.d >= 0 && peq(yx, padd(x.p, dird[x.d])) ? x : undefined))
+              ),
+            obs = ops.map(get_box).map((x) => x[0]);
+          if (
+            (
+              "'}_&\\/?{]`" +
+              ">v<^" +
+              "0123456789" +
+              "ABCDEFGHIJKLMNOPQRSTUWXYZabcdefghijklmnopqrstuwxz"
+            ).includes(c)
+          )
+            return true;
+          if ("/. &. _.".split(" ").includes(c)) return true;
+          if (c == "~.") {
+            return (
+              peq(from, ips[0]) ||
+              (peq(from, ips[1]) &&
+                !s$(yx).batch &&
+                ibs[1].v <= !!ibs[0] + s$(yx).stack.length)
+            );
+          }
+          if ("%|+$*-=()~@.".includes(c)) return has_all_waiting(yx, recrec);
+          if ("%. $. |. +. *. -. (. ). =.".split(" ").includes(c))
+            return has_all_waiting(yx, recrec);
+          if (c == ":")
+            return (
+              (peq(from, ips[0]) && (!!s$(yx) || (ibs[1] && ibs[1].v))) ||
+              (peq(from, ips[1]) && !s$(yx) && !!ibs[0])
+            );
+          if (c == ",") return peq(from, ips[0]) || !ibs[0];
+          if (c == ",.") return peq(from, ips[1]) || !ibs[1];
+          if (c == ";")
+            return (
+              !!(peq(from, ips[0]) && s$(yx) && !ibs[1]) ||
+              (peq(from, ips[0]) && !s$(yx) && ibs[1]) ||
+              peq(from, ips[1])
+            );
+          if (c == "!")
+            return (
+              from === undefined ||
+              (s$(yx).t == 0 && has_all_waiting(yx, recrec))
+            );
+          if (c == "#") return true;
+          //return peq(from,ips[0]) || (peq(from,ips[1]) && !ibs[0]);
+          if (c == "[") return false;
+          if (c == '"')
+            return (
+              from === undefined ||
+              (s$(yx) === undefined && has_all_waiting(yx, recrec))
+            );
+
+          console.log(`free undefined: ${yx[0]},${yx[1]},${c}`);
+          return false;
+        };
+        (stays = []), (will_move = []);
+        wantsto.forEach((x) => {
+          if (x[1] >= 0) {
+            let list;
+            let goes_to = padd(x[0], dird[x[1]]);
+            let c = p$(goes_to);
+            if (c >= "a" && c <= "z" && c != "v") {
+              let fun = generate_function(goes_to);
+              goes_to =
+                fun.in_ports[
+                  fun.parent_in_ports.findIndex((o) => peq(o, x[0]))
+                ];
+            }
+            if (c == "}" && s$(goes_to)) {
+              goes_to = s$(goes_to);
+            }
+            if (is_free(x[0], goes_to, []))
+              (x[2].moves_to = goes_to), (list = will_move);
+            else (x[2].moves_to = null), (list = stays);
+            list.push([x[0], goes_to, x[2]]);
+          } else {
+            if (p$(x[0]) == "?") {
+              x[1] = out_ports(x[0])[0];
+              if (is_free(x[0], padd(x[0], dird[x[1]]), [])) {
+                will_move.push([x[0], padd(x[0], dird[x[1]]), x[2]]);
+                x[2].d = x[1];
+                x[2].moves_to = padd(x[0], dird[x[1]]);
+                return;
+              }
+              x[1] = out_ports(x[0])[1];
+              if (is_free(x[0], padd(x[0], dird[x[1]]), [])) {
+                will_move.push([x[0], padd(x[0], dird[x[1]]), x[2]]);
+                x[2].d = x[1];
+                x[2].moves_to = padd(x[0], dird[x[1]]);
+                return;
+              }
+              //x[1] = out_ports(x[0])[0];
+              //x[2].d = x[1];
+              x[2].moves_to = null;
+              stays.push([x[0], padd(x[0], dird[x[1]]), x[2]]);
+            } else {
+              stays.push([x[0], x[0], x[2]]);
+            }
+          }
+        });
+
+        var new_boxes = stays.map((x) => x[2]);
+        shall_activate = will_move.map((x) => x[1]);
+        for (let z = 0; z < p.length; z++)
+          for (let y = 0; y < p[z].length; y++)
+            for (let x = 0; x < p[z][y].length; x++) {
+              let yx = [z, y, x],
+                c = p$(yx),
+                d = d$(yx);
+              let ips = in_ports(yx).map((ipd) => padd(yx, dird[ipd])),
+                ops = out_ports(yx).map((opd) => padd(yx, dird[opd])),
+                ibs = ips.map(get_box).map((x) => x[0]),
+                obs = ips.map(get_box).map((x) => x[0]);
+              if ("\\".includes(c)) {
+                if (s$(yx) && !ibs[0] && get_box(yx).length) {
+                  if (
+                    !get_box(yx).length ||
+                    will_move.some((x) => peq(x[0], yx))
+                  )
+                    shall_activate.push(yx);
+                }
+              }
+              if (c == "~." && s$(yx).batch && s$(yx).stack.length)
+                shall_activate.push(yx);
+              if (
+                !"~_!{&'0123456789\"".includes(c) &&
+                !"~.".split(" ").includes(c)
+              )
+                continue;
+              if (!is_free(undefined, yx, [])) continue;
+              if (c == "~" && s$(yx).c < s$(yx).l) shall_activate.push(yx);
+              if (c == "_" && ips.length == 0) shall_activate.push(yx);
+              if ("!".includes(c)) {
+                if (s$(yx).t > 0) shall_activate.push(yx);
+              }
+              if (c == "{" && !s$(yx)) {
+                if (stdin_queue.length) shall_activate.push(yx);
+              }
+              if (
+                "&".includes(c) &&
+                ips.length == 1 &&
+                stays.map((x) => x[2]).every((x) => !peq(x.p, yx))
+              ) {
+                if (s$(yx).stack.length) shall_activate.push(yx);
+              }
+              if ("'" == c) {
+                let ok = true;
+                for (var i = 1; i < s$(yx).length + 1; i++) {
+                  let b = get_box(padd(yx, [0, 0, i]));
+                  if (b.length && (i + 1 == s$(yx).length || !b[0].moves_to))
+                    ok = false;
+                }
+                if (ok) shall_activate.push(yx);
+              }
+              if ("0123456789".includes(c) && ips.length == 0)
+                shall_activate.push(yx);
+              if (
+                '"'.includes(c) &&
+                out_ports(yx).length == 1 &&
+                s$(yx) !== undefined
+              )
+                shall_activate.push(yx);
+            }
+        shall_activate = Array.from(
+          new Set(shall_activate.map(pos_to_str))
+        ).map(str_to_pos);
+
+        for (let yx of over_all(p))
+          if (p$(yx) == "/.") {
+            if (
+              !shall_activate.find((xy) => peq(xy, yx)) &&
+              !boxes.find((b) => peq(b.p, yx))
+            )
+              s$(yx).i = 0;
+          }
+
+        let dval = (c, box) => {
+          if (box.v != "empty") return box.v;
+          return {
+            "+": 0,
+            "*": 1,
+            /* '#': 1, */ ":": 1,
+            ".": 0,
+            "-": 1,
+            "~": 1,
+            "!": 1,
+            "~": 1,
+            "+.": -Infinity,
+            "-.": Infinity,
+            "(": Infinity,
+            ")": -Infinity,
+          }[c];
+        };
+        let tonr = (x) =>
+          typeof x == "string" ? (x == "empty" ? "empty" : x.charCodeAt(0)) : x;
+        let tochr = (x) => (typeof x == "number" ? String.fromCharCode(x) : x);
+        for (yx of shall_activate) {
+          let z = yx[0],
+            y = yx[1],
+            x = yx[2];
+          let c = p[z][y][x],
+            d = dirs[z][y][x];
+          let ips = in_ports(yx),
+            ops = out_ports(yx),
+            ibs = ips
+              .map((ipd) => padd(yx, dird[ipd]))
+              .map((ip) =>
+                boxes.find((b) => {
+                  return (
+                    peq(b.p, ip) && b.d >= 0 && peq(yx, padd(b.p, dird[b.d]))
+                  );
+                })
+              ),
+            //ibs=ips.map(ipd=>padd(yx,dird[ipd])).map(ip => boxes.find(b => {return (peq(b.p,ip) && peq(b.moves_to, yx));}));
+            obs = ops
+              .map((ipd) => padd(yx, dird[ipd]))
+              .map(get_box)
+              .map((x) => x[0]);
+          let tr = (x) => x;
+          if (ibs.length == 2 && ibs[0] && ibs[1]) {
+            tr =
+              typeof ibs[0].v == "string" && ibs[0].v != "empty" ? tochr : tonr;
+          }
+
+          if (">v<^".includes(c)) {
+            new_boxes.push({ v: ibs[0].v, p: yx, d: ops[0] });
+          } else if ("abcdefghijklmnopqrstuwxz".includes(c)) {
+            for (i in s$(yx).out_ports) {
+              let from = s$(yx).out_ports[i];
+              let b = get_box(padd(from, dird[in_ports(from)[0]]));
+              if (b.length) {
+                new_boxes.push({ v: b[0].v, p: yx, d: ops[i] });
+              }
+            }
+          } else if (c == ",")
+            new_boxes.push({
+              v: (ibs[0] ? ibs[0] : ibs[1]).v,
+              p: yx,
+              d: ops[0],
+            });
+          else if (c == ",.")
+            new_boxes.push({
+              v: (ibs[1] ? ibs[1] : ibs[0]).v,
+              p: yx,
+              d: ops[0],
+            });
+          else if (c == ";") {
+            if (ibs[1]) s$(yx, !s$(yx));
+            if (ibs[0] && s$(yx))
+              new_boxes.push({ v: ibs[0].v, p: yx, d: ops[0] });
+          } else if (c == "'") {
+            if (ibs[0]) {
+              new_boxes.push({ v: ibs[0].v, p: yx, d: ops[0] });
+            } else
+              Array.from(s$(yx)).forEach((c, i) =>
+                new_boxes.push({ v: c, p: padd(yx, [0, 0, 1 + i]), d: ops[0] })
+              );
+          } else if (c == "~.") {
+            if (
+              !s$(yx).batch &&
+              ibs[1] &&
+              ibs[1].v <= !!ibs[0] + s$(yx).stack.length
+            ) {
+              s$(yx).batch = ibs[1].v;
+            }
+            if (ibs[0]) {
+              s$(yx).stack.push(ibs[0].v);
+            }
+            if (s$(yx).stack && s$(yx).batch) {
+              let elem = s$(yx).stack[0];
+              s$(yx).stack = s$(yx).stack.slice(1);
+              new_boxes.push({ v: elem, p: yx, d: ops[0] });
+              s$(yx).batch--;
+            }
+          } else if (c == ".") {
+            new_boxes.push({
+              v:
+                1 *
+                ((ibs[0].v == "default" ? -Infinity : ibs[0].v) <
+                  (ibs[1].v == "default" ? Infinity : ibs[1].v)),
+              p: yx,
+              d: ops[0],
+            });
+          } else if (c == "@") {
+            new_boxes.push({ v: ibs[0].v, p: yx, d: ops[ibs[1].v ? 0 : 1] });
+          } else if (c == "+") {
+            new_boxes.push({
+              v: tr(tonr(dval(c, ibs[0])) + tonr(dval(c, ibs[1]))),
+              p: yx,
+              d: ops[0],
+            });
+          } else if (c == "-") {
+            new_boxes.push({
+              v: tr(tonr(dval(c, ibs[0])) - tonr(dval(c, ibs[1]))),
+              p: yx,
+              d: ops[0],
+            });
+          } else if (c == "+.") {
+            new_boxes.push({
+              v: tr(Math.max(tonr(dval(c, ibs[0])), tonr(dval(c, ibs[1])))),
+              p: yx,
+              d: ops[0],
+            });
+          } else if (c == "-.") {
+            new_boxes.push({
+              v: tr(Math.min(tonr(dval(c, ibs[0])), tonr(dval(c, ibs[1])))),
+              p: yx,
+              d: ops[0],
+            });
+          } else if (c == "*") {
+            new_boxes.push({
+              v: tr(tonr(dval(c, ibs[0])) * tonr(dval(c, ibs[1]))),
+              p: yx,
+              d: ops[0],
+            });
+          } else if (c == "!") {
+            if (ibs[1] && ibs[0] && s$(yx).t == 0) {
+              s$(yx).t = dval(c, ibs[1]) >= 0 ? dval(c, ibs[1]) : 0;
+              s$(yx).v = JSON.parse(JSON.stringify(ibs[0].v));
+            }
+            if (s$(yx).t > 0)
+              new_boxes.push({ v: s$(yx).v, p: yx, d: ops[0] }), s$(yx).t--;
+          } else if (c == "#" && ops.length == 2) {
+            if (
+              ibs[0] &&
+              get_box(yx).filter((b) => b.d == (ips[0] + 2) % 4 && !b.moves_to)
+                .length == 0
+            )
+              new_boxes.push({ v: ibs[0].v, p: yx, d: (ips[0] + 2) % 4 });
+            if (
+              ibs[1] &&
+              get_box(yx).filter((b) => b.d == (ips[1] + 2) % 4 && !b.moves_to)
+                .length == 0
+            )
+              new_boxes.push({ v: ibs[1].v, p: yx, d: (ips[1] + 2) % 4 });
+          } else if (c == ":" && ops.length == 1) {
+            if (ibs[1] && !s$(yx)) s$(yx, s$(yx) + dval(c, ibs[1]));
+            if (ibs[0] && s$(yx)) {
+              s$(yx, s$(yx) - 1);
+              new_boxes.push({ v: ibs[0].v, p: yx, d: ops[0] });
+            }
+          } else if (c == "$")
+            new_boxes.push({ v: ibs[1].v, p: yx, d: ops[0] });
+          else if (c == "`") new_boxes.push({ v: ibs[0].v, p: yx, d: ops[0] });
+          else if (c == "=")
+            new_boxes.push({
+              v: 1 * (tonr(ibs[0].v) == tonr(ibs[1].v)),
+              p: yx,
+              d: ops[0],
+            });
+          else if (c == "=.")
+            new_boxes.push({
+              v: 1 * (tonr(ibs[0].v) != tonr(ibs[1].v)),
+              p: yx,
+              d: ops[0],
+            });
+          else if (c == "(")
+            new_boxes.push({
+              v: 1 * (tonr(dval(c, ibs[0])) < tonr(dval(c, ibs[1]))),
+              p: yx,
+              d: ops[0],
+            });
+          else if (c == ")")
+            new_boxes.push({
+              v: 1 * (tonr(dval(c, ibs[0])) > tonr(dval(c, ibs[1]))),
+              p: yx,
+              d: ops[0],
+            });
+          else if (c == "(.")
+            new_boxes.push({
+              v: tr(tonr(dval(c, ibs[0])) <= tonr(dval(c, ibs[1]))),
+              p: yx,
+              d: ops[0],
+            });
+          else if (c == ").")
+            new_boxes.push({
+              v: tr(tonr(dval(c, ibs[0])) >= tonr(dval(c, ibs[1]))),
+              p: yx,
+              d: ops[0],
+            });
+          else if (c == "*.")
+            new_boxes.push({
+              v: Math.pow(ibs[0].v, ibs[1].v),
+              p: yx,
+              d: ops[0],
+            });
+          else if (c == "%.")
+            new_boxes.push({
+              v: Math.log(ibs[0].v, ibs[1].v),
+              p: yx,
+              d: ops[0],
+            });
+          else if (c == "?") {
+            new_boxes.push({ v: ibs[0].v, p: yx, d: -1 });
+          } else if (c == "_") {
+            new_boxes.push({ v: "empty", p: yx, d: ops[0] });
+          } else if (c == "&.")
+            new_boxes.push({ v: Math.ceil(ibs[0].v), p: yx, d: ops[0] });
+          else if (c == "_.")
+            new_boxes.push({ v: Math.floor(ibs[0].v), p: yx, d: ops[0] });
+          else if (c == "&" && ips.length == 1) {
+            if (ibs[0]) {
+              s$(yx).stack.push(ibs[0].v);
+            }
+            var b = boxes.find((x) => peq(yx, x.p) && !x.moves_to);
+            if (s$(yx).stack.length && !b) {
+              console.log("pushing", s$(yx).stack.length);
+              let elem = s$(yx).stack[0];
+              s$(yx).stack = s$(yx).stack.slice(1);
+              new_boxes.push({ v: elem, p: yx, d: ops[0] });
+            }
+          } else if (c == "/.") {
+            new_boxes.push({ v: ibs[0].v, p: yx, d: ops[0] });
+            new_boxes.push({ v: s$(yx).i, p: yx, d: ops[1] });
+            s$(yx).i++;
+            s$(yx).a = true;
+          } else if (c == "|")
+            if (ibs[1].v == "empty")
+              new_boxes.push({ v: Math.abs(ibs[0].v), p: yx, d: ops[0] });
+            else
+              new_boxes.push({
+                v: ((ibs[0].v % ibs[1].v) + ibs[1].v) % ibs[1].v,
+                p: yx,
+                d: ops[0],
+              });
+          else if (c == "%")
+            if (ibs[1].v == "empty")
+              new_boxes.push({ v: Math.sign(ibs[0].v), p: yx, d: ops[0] });
+            else new_boxes.push({ v: ibs[0].v / ibs[1].v, p: yx, d: ops[0] });
+          else if (c == "~")
+            new_boxes.push({
+              v: ibs[0].v,
+              p: yx,
+              d: -1,
+              timeout: ips.length == 1 ? 2 : Math.max(1, dval(c, ibs[1]) + 1),
+            });
+          else if (c == "\\") {
+            if (ibs[0])
+              new_boxes.push({ v: ibs[0].v, p: yx, d: ops[0] }),
+                s$(yx, s$(yx) + 1);
+            if (
+              s$(yx) &&
+              !ibs[0] &&
+              (!get_box(yx).length || will_move.some((x) => peq(x[0], yx)))
+            )
+              new_boxes.push({ v: s$(yx), p: yx, d: ops[1] }), s$(yx, 0);
+          } else if (c == "/") {
+            new_boxes.push({ v: ibs[0].v, p: yx, d: ops[0] });
+            if (!get_box(yx).length)
+              new_boxes.push({ v: "empty", p: yx, d: ops[1] });
+          } else if (c == "]") {
+          } else if (c == '"' && ops.length == 1) {
+            if (s$(yx) !== undefined)
+              new_boxes.push({ v: s$(yx), p: yx, d: ops[0] }),
+                (state[yx[0]][yx[1]] = undefined);
+            else
+              s$(yx, ibs[0].v),
+                new_boxes.push({ v: ibs[0].v, p: yx, d: ops[0] });
+          } else if (c == '"' && ops.length == 2) {
+            d$(yx).map((io, d) => {
+              if (io == OUT)
+                new_boxes.push({
+                  v: JSON.parse(JSON.stringify(ibs[0].v)),
+                  p: yx,
+                  d: d,
+                });
+            });
+          } else if (c == "{") {
+            if (yx[0] == 0) {
+              new_boxes.push({
+                v: stdin_queue[0][0] != "_" ? stdin_queue[0][0] : "empty",
+                p: yx,
+                d: ops[0],
+              });
+              stdin_queue[0] = stdin_queue[0].slice(1);
+              if (!stdin_queue[0].length) {
+                stdin_queue = stdin_queue.slice(1);
+                s$(yx, 5);
+              }
+            } else {
+              let from = s$(yx);
+              new_boxes.push({ v: get_box(from)[0].v, p: yx, d: ops[0] });
+            }
+          } else if (c == "}") {
+            if (yx[0] == 0) {
+              let t = document.querySelector("#stdout");
+              if (typeof ibs[0].v == "number" && pout_was_number)
+                t.value += " ";
+              pout_was_number = false;
+              t.value += ibs[0].v == "empty" ? "\n" : ibs[0].v;
+              if (typeof ibs[0].v == "number") pout_was_number = true;
+              if (typeof ibs[0].v == "object") t.value += "\n";
+            } else if (ibs[0]) {
+              let to = s$(yx);
+              let port = s$(to).out_ports.findIndex((x) => peq(x, yx));
+              console.log(port);
+              new_boxes.push({ v: ibs[0].v, p: to, d: 0 });
+              console.log("outgoing", to);
+            }
+          } else if (c == "~") {
+            if (ibs[0] && s$(yx).c == s$(yx).l) {
+              (s$(yx).l = dval(c, ibs[0])), (s$(yx).c = 0);
+            }
+            if (s$(yx).c < s$(yx).l)
+              new_boxes.push({ v: s$(yx).c++, p: yx, d: ops[0] });
+          } else if ("0123456789".includes(c))
+            new_boxes.push({ v: s$(yx), p: yx, d: ops[0] });
+          else if ("ABCDEFGHIJKLMNOPQRSTUWXYZ".includes(c))
+            new_boxes.push({ v: ibs[0].v, p: yx, d: ops[0] });
+          else console.log(`undefined ${y},${x},${c}`);
+        }
+        boxes = new_boxes;
+        running = shall_activate.length;
+        for (let yx of over_all(p)) {
+          if (p$(yx) == "/." && !s$(yx).a) s$(yx).i = 0;
+          if (p$(yx) == "{" && s$(yx)) s$(yx, s$(yx) - 1), (running = true);
+        }
+
+        boxes.forEach((b) => {
+          if (b.timeout) {
+            running = true;
+            b.timeout--;
+            if (!b.timeout) b.d = out_ports(b.p)[0];
+          }
+        });
+
+        (STATE.shall_activate = shall_activate),
+          (STATE.p = p),
+          (STATE.dirs = dirs),
+          (STATE.state = state),
+          (STATE.boxes = boxes);
+        //console.log(new_boxes);
+        //print(p, boxes);
+      };
+
+      function draw(STATE, print = false) {
+        let shall_activate = STATE.shall_activate,
+          p = STATE.p,
+          dirs = STATE.dirs,
+          state = STATE.state,
+          boxes = STATE.boxes;
+        //w = STATE.w;
+        //h = STATE.h;
+        const op$ = (yx) => ops.indexOf(p$(yx));
+        const s$ = (yx, v) => $$(state, yx, v);
+        const io$ = (yx, v) => $$(io, yx, v);
+        const d$ = (yx, v) => $$(dirs, yx, v);
+        const p$ = (yx, v) => $$(p, yx, v);
+        const in_ports = (yx) =>
+          (d$(yx).some((io, d) => io == OUT && p$(padd(dird[d], yx)) == "`")
+            ? [0, 1, 2, 3]
+            : [3, 2, 1, 0]
+          ).filter((d) => d$(yx)[d] == IN);
+        const out_ports = (yx) =>
+          (!d$(yx).some((io, d) => io == OUT && p$(padd(dird[d], yx)) == "`")
+            ? [0, 1, 2, 3]
+            : [3, 2, 1, 0]
+          ).filter((d) => d$(yx)[d] == OUT);
+
+        let h = p.map((x) => x.length).reduce((a, b) => a + b);
+        if (p.length > 1) h++;
+        let w = Math.max(...p.map((x) => x[0].length));
+        let yo = 0;
+        let empty_rows = p[0].map((rows) => rows.every((cell) => cell == " "));
+        let skip_y = 0;
+        for (
+          skip_y = 0;
+          skip_y < empty_rows.length && empty_rows[skip_y];
+          skip_y++
+        ) {}
+
+        const bw = 30,
+          r = 0.12;
+        h -= skip_y;
+        yo -= skip_y;
+        canvas.width = (w - 2) * bw + print * 200;
+        canvas.height = (h - 1) * bw;
+        ctx.fillStyle = "white";
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.fillStyle = "black";
+        ctx.font = `${bw * 0.85}px monospace`;
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        for (let z = 0; z < p.length; skip_y = 0, yo += p[z].length, z++) {
+          let first = Number(z == 0);
+          for (var y = skip_y; y < p[z].length - first; y++)
+            for (var x = first; x < p[z][y].length; x++) {
+              let px = (x - first) * bw,
+                py = (y + yo) * bw;
+              let fillStyle = "white";
+              if (boxes && !!boxes.find((b) => peq(b.p, [z, y, x])))
+                fillStyle = "aliceblue";
+              if (
+                shall_activate &&
+                !!shall_activate.find((e) => peq(e, [z, y, x]))
+              )
+                fillStyle = "antiquewhite";
+              if (
+                p$([z, y, x]) != " " &&
+                d$([z, y, x]).some((x) => x == UNDECIDED)
+              )
+                fillStyle = "orangered";
+              ctx.fillStyle = fillStyle;
+              if (fillStyle != "white") ctx.fillRect(px, py, bw, bw);
+              ctx.fillStyle = "black";
+            }
+          let printqueue = "";
+          for (var y = skip_y; y < p[z].length - first; y++)
+            for (var x = first; x < p[z][y].length; x++) {
+              let px = (x - first) * bw,
+                py = (y + yo) * bw;
+              let content = p$([z, y, x]);
+              let from_queue = false;
+              if (printqueue && printqueue.length) {
+                content = printqueue[0];
+                printqueue = printqueue.slice(1);
+                from_queue = true;
+              }
+              if (!from_queue) {
+                if (">v<^".includes(content)) content = " ";
+                if (content == "'")
+                  (printqueue = s$([z, y, x]) + "'"), (content = "'");
+                if (content == "0") content = s$([z, y, x]);
+              }
+              let b = boxes && boxes.find((b) => peq(b.p, [z, y, x]));
+              if (b)
+                content =
+                  b.v == "empty" ? "_" : typeof b.v == "object" ? "B" : b.v;
+              ctx.fillText(content, px + bw / 2, py + bw / 2, 20);
+            }
+          for (var y = skip_y; y < p[z].length - first; y++)
+            for (var x = first; x < p[z][y].length; x++) {
+              let px = (x - first) * bw,
+                py = (y + yo) * bw;
+              let yx = [z, y, x];
+              d$(yx).forEach((io, d) => {
+                if (io == OUT) {
+                  ctx.beginPath();
+                  ctx.lineWidth = 1;
+                  if (d == out_ports(yx)[0] && out_ports(yx).length > 1) {
+                    ctx.lineWidth = 1.5;
+                  }
+                  let into_ports = in_ports(padd(yx, dird[d]));
+                  if (into_ports.length > 1 && (into_ports[0] + 2) % 4 == d) {
+                    ctx.lineWidth = 1.5;
+                  }
+                  if (d == 0)
+                    ctx.moveTo(px + bw - bw * r, py + bw * (0.5 - r * 2)),
+                      ctx.lineTo(px + bw + bw * r, py + bw * 0.5),
+                      ctx.lineTo(px + bw - bw * r, py + bw * (0.5 + r * 2));
+                  if (d == 1)
+                    ctx.moveTo(px + bw * (0.5 - r * 2), py + bw - bw * r),
+                      ctx.lineTo(px + bw * 0.5, py + bw + bw * r),
+                      ctx.lineTo(px + bw * (0.5 + r * 2), py + bw - bw * r);
+                  if (d == 2)
+                    ctx.moveTo(px + bw * r, py + bw * (0.5 - r * 2)),
+                      ctx.lineTo(px - bw * r, py + bw * 0.5),
+                      ctx.lineTo(px + bw * r, py + bw * (0.5 + r * 2));
+                  if (d == 3)
+                    ctx.moveTo(px + bw * (0.5 - r * 2), py + bw * r),
+                      ctx.lineTo(px + bw * 0.5, py - bw * r),
+                      ctx.lineTo(px + bw * (0.5 + r * 2), py + bw * r);
+                  ctx.stroke();
+                  ctx.lineWidth = 1;
+                } else if (io == NONE) {
+                  ctx.beginPath();
+                  ctx.strokeStyle = "#666666";
+                  if (d == 0)
+                    ctx.moveTo(px + bw, py), ctx.lineTo(px + bw, py + bw);
+                  if (d == 1)
+                    ctx.moveTo(px, py + bw), ctx.lineTo(px + bw, py + bw);
+                  if (d == 2) ctx.moveTo(px, py), ctx.lineTo(px, py + bw);
+                  if (d == 3) ctx.moveTo(px, py), ctx.lineTo(px + bw, py);
+                  ctx.stroke();
+                  ctx.strokeStyle = "#000000";
+                }
+              });
+            }
+        }
+
+        if (print) {
+          ctx.textAlign = "left";
+          ctx.textBaseline = "top";
+          let text = document.querySelector("#stdout").value;
+          if (text.length) {
+            text = text.split("\n");
+            text
+              .flatMap((line) => {
+                let splitted = line.match(/.{1,11}/g);
+                if (!splitted) return [];
+                return splitted.map((x) => x.trimLeft());
+              })
+              .forEach((line, i) => ctx.fillText(line, bw * (w - 1), i * bw));
+          }
+        }
+      }
+
+      function exportCG() {
+        let textarea = document.querySelector("#codegolf");
+        if (textarea.hidden) {
+          let program = document
+            .querySelector("#program")
+            .value.split("\n")
+            .map((x) => x.trimRight())
+            .join("\n");
+          textarea.value = `# [convey], ${program.length} bytes
+
+    ${program.split("\n").join("\n    ")}
+
+[Try it online!](${document.URL})
+
+[convey]: http://xn--wxa.land/convey/`;
+          textarea.hidden = false;
+        } else {
+          textarea.hidden = true;
+        }
+      }
+
+      function exportGIF() {
+        //compile();
+        draw(MAIN, true);
+        /*encoder = new APNGencoder(document.querySelector('canvas')), encoderstep = 0;
+	encoder.setRepeat(1); encoder.setDelay(40); encoder.setBlend(0);
+	encoder.start();*/
+        encoder = new GIFEncoder();
+        encoder.setRepeat(0);
+        encoder.setDelay(400);
+        encoder.start();
+        let frames = Number(document.querySelector("#frames").value);
+        for (var i = 0; i < frames && running; i++)
+          encoder.addFrame(ctx), step(MAIN), draw(MAIN, true);
+        for (var i = 0; i < 4; i++) encoder.addFrame(ctx);
+        img = document.querySelector("#gif");
+        encoder.finish();
+        img.src = "data:image/gif;base64," + btoa(encoder.stream().getData());
+        encoder = undefined;
+      }
+
+      window.onhashchange = function () {
+        read_url(false);
+      };
+    </script>
+    <style></style>
+  </head>
+  <body
+    onload="read_url(true)"
+    onkeydown="
+	if(event.code=='Tab'){step(MAIN),draw(MAIN);event.preventDefault();}
+	if(event.code=='Enter'&&event.ctrlKey){compile();event.preventDefault();}
+"
+  >
+    <div style="height: 20em">
+      <textarea
+        placeholder="code"
+        id="program"
+        style="height: 100%; width: 50%; float: left; font: monospace"
+      >
+1"1
+"+^
+}</textarea
+      >
+      <textarea
+        placeholder="input"
+        id="stdin"
+        style="height: 50%; width: 50%; padding: 0; float: left; font-family: monospace;"
+      ></textarea>
+      <br />
+      <textarea
+        placeholder="output"
+        disabled
+        id="stdout"
+        style="height: 50%; width: 50%; padding: 0; float: left"
+      ></textarea>
+    </div>
+    <br />
+    <br />
+    <button title="Ctrl+Return" onclick="compile()">Compile</button>
+    <button
+      title="Tab"
+      onclick="if (interval)clearInterval(interval), interval = 0;else step(MAIN),draw(MAIN);"
+    >
+      Step
+    </button>
+    <button
+      onclick="interval=setInterval(x=>{step(MAIN);draw(MAIN);if(!running)clearInterval(interval),interval=0;}, 400);"
+    >
+      Slow
+    </button>
+    <button
+      onclick="interval=setInterval(x=>{step(MAIN);draw(MAIN);if(!running)clearInterval(interval),interval=0;}, 100);"
+    >
+      Fast
+    </button>
+    <button onclick="for(var i=0;running&&i<1000;i++)step(MAIN);draw(MAIN);">
+      10k Step
+    </button>
+    <button onclick="while(running)step(MAIN);draw(MAIN);">Finish</button>
+    <br />
+    <canvas></canvas>
+    <br />
+    <button onclick="exportCG();">Export codegolf answer</button>
+    <label for="frames">Frames:</label>
+    <input id="frames" type="number" value="30" />
+    <button onclick="exportGIF();">Export gif</button>
+    <br />
+    <img id="gif" />
+    <br />
+    <textarea id="codegolf" style="width: 100%; height: 20em"></textarea>
+
+    <details>
+      <summary>Examples</summary>
+      <a href="#eyJjIjoiMVwiMVxuXCIrXlxufSIsInYiOjEsImkiOiIifQ=="
+        >Fibonacci Sequence</a
+      ><br />
+      <a href="#eyJjIjoiICAgfVxuey8rP1xuID4sXiIsInYiOjEsImkiOiIxIDYgOCAxMyJ9"
+        >Sum a list</a
+      ><br />
+      <a
+        href="#eyJjIjoidlwiPlwiIX1cbisxIHwpXG4xICA1MCIsInYiOjEsImkiOiI0IDcgMiAzIn0="
+        >Filtering</a
+      ><br />
+      <a
+        href="#eyJjIjoiPj4+Pn4+IT4vLD59XG5eICA0KiBeID5eXG5cIj4+PVwiPj1cbnsnICcgIDAiLCJ2IjoxLCJpIjoiJ0hlbGxvIHdvcmxkISBIb3cgYXJlIHlvdT8nIn0="
+        >String handling</a
+      ><br />
+      <a
+        href="#eyJjIjoiICAxXG57Qit9XG5cbiAgMVxue0ErYn1cblxue2E+YX0iLCJ2IjoxLCJpIjoiMyAyIDggMSJ9"
+        >Function calling</a
+      ><br />
+    </details>
+    <details>
+      <summary>About</summary>
+      <p>
+        convey is a somewhat codegolf-y 2D esolang based on conveyor belts, that
+        will push values around in a factory. There is a crude
+        <a href="MANUAL.txt">manual</a> that explains the language.
+      </p>
+
+      <p>
+        This here is an interpreter for convey. Top left is the code, top right
+        is the input, under that the output. Visualization of the runtime is
+        drawn a the bottom. You can compile with ctrl+return and step through
+        the simulation via tab, or choose one of the step speeds.
+      </p>
+    </details>
+  </body>
+</html>
