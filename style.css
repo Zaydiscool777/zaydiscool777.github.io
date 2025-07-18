@@ -1,0 +1,202 @@
+/* highlight for "bug"-finding */
+
+put-tag-or-id-or-class-here {
+  background-color: blue;
+  background: blue;
+  color: blue;
+}
+
+/* menus and small text */
+
+body {
+  font-family: Arial, sans-serif;
+}
+
+mono {
+  font-family: monospace; /*https://stackoverflow.com/questions/38781089/font-family-monospace-monospace*/
+}
+
+code {
+  font-family: monospace;
+  background-color: lightgray;
+}
+
+/* headers and big text */
+
+#big {
+  font-family: Verdana, sans-serif;
+  font-size: 75px;
+}
+
+/* images and videos max out at full width */
+
+img,
+video {
+  height: auto;
+  max-width: 100%;
+}
+
+#logo {
+  height: 150px;
+  margin-top: 10px;
+  margin-left: 25px;
+}
+
+/* gradient */
+
+.grad {
+  background: rgb(164, 255, 79);
+  background: linear-gradient(
+    rgba(164, 255, 79, 1) 0%,
+    rgba(85, 153, 85, 1) 75%,
+    rgba(85, 153, 85, 1) 100%
+  );
+  font-family: Verdana, sans-serif;
+  font-size: 50px;
+  margin: 50px 50px;
+  margin-bottom: 0px;
+}
+
+/* background */
+
+#back1 {
+  background-color: #222244;
+  margin: 0px;
+}
+
+#back2 {
+  background-color: #ffffff;
+  margin: 0px;
+  background-size: 15px;
+}
+
+#back3 {
+  background-color: #449999;
+  margin: 0px;
+}
+
+/* dropdowns - dev.to
+reintech.io is for hover. */
+
+/* side by side - dev.to */
+
+.side {
+  display: inline-block;
+  padding: 1px;
+}
+
+/* back to top button - https://www.grepper.com/profile/dion-jongmans */
+
+#btop {
+  position: fixed;
+  bottom: 45px;
+  right: 5px;
+  background-color: red;
+}
+
+/* links - w3schools */
+
+/* unvisited link */
+a:link {
+  color: blue;
+}
+
+/* visited link */
+a:visited {
+  color: gray;
+  font-size: .75em;
+}
+
+/* mouse over link */
+a:hover {
+  color: green;
+  text-decoration-style: bold;
+}
+
+/* selected link */
+a:active {
+  color: red;
+  text-decoration-style: italic;
+}
+
+/* week: on */
+
+disqus {
+  display: block;
+}
+
+nodisqus {
+  display: none;
+}
+
+/* definition/extra info */
+/* note to self: block creates inlines */
+
+/* note: necessary knowledge */
+
+note {
+  display: block;
+  outline: solid 2px;
+  padding: 0.25em 0.5em;
+  background-color: #fcfc83;
+  outline-color: #f2f20d;      
+}
+
+note::before {
+  content: "note: "
+}
+
+/* sm & def: optional knowledge */
+
+sm {
+  font: italic;
+}
+
+def {
+  display: none;
+}
+
+sm:hover def {
+  display: inline;
+  color: gray;
+}
+
+/* ps: unneeded knowledge */
+
+/* TODO: fix ps on not hovering content */
+
+ps:not(:hover) {
+  content: "(postscript...)";
+  font: italic;
+}
+
+ps:hover::before {
+  content: "(p.s.: "
+}
+
+ps:hover::after {
+  content: ")"
+}
+
+/* iframes and forms */
+
+iframe {
+  border: solid red;
+}
+
+form {
+  border: dotted blue;
+}
+
+/* recreational */
+/* blink: https://stackoverflow.com/questions/16344354/how-to-make-blinking-flashing-text-with-css-3*/
+
+.blink {
+  animation: blinker 1s linear infinite;
+}
+
+@keyframes blinker {
+  100% {
+    opacity: 0;
+  }
+}
