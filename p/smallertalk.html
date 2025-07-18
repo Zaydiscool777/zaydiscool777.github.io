@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<link rel="icon" href="https://glitch.com/favicon.ico">
+	<link rel="stylesheet" href="/style.css">
+	<script src="/script.js" defer></script>
+	<!--<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script> (latex is auto, so in <p> e.g.) -->
+	<!--remove!--><meta http-equiv="refresh" content="3;url=https://www.example.com">
+	<title>smallertalk</title>
+  </head>
+  <!-- or, instead of mathjax (http://blog.dreasgrech.com/2009/12/jslatex-jquery-plugin-to-directly-embed.html)
+  <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.3.2/jquery.min.js"></script>
+  <script src="jquery.jslatex.js"></script>
+  <script>$(function () {$(".latex").latex();});</script>
+  <div class="latex">
+	  \int_{0}^{\pi}\frac{x^{4}\left(1-x\right)^{4}}{1+x^{2}}dx =\frac{22}{7}-\pi
+  </div>-->
+  <body>
+	jul 18, 3:33 am
+	<header id="header">
+	  <div id="back1">
+		<div class="grad">
+		  <a href="/"><img 
+			src="https://t4.ftcdn.net/jpg/00/32/16/37/240_F_32163764_TVGoyLxIBzW7rlkpXFoqsBpFCcdrM4ag.jpg"
+			id="logo"></a> <!--https://t4.ftcdn.net/jpg/00/32/16/37/240_F_32163764_TVGoyLxIBzW7rlkpXFoqsBpFCcdrM4ag.jpg-->
+		  smallertalk
+		</div>
+	  </div>
+	</header>
+	<!--<div class="tenor-gif-embed" data-postid="15230643" data-share-method="host" data-aspect-ratio="1" data-width="45%"><a href="https://tenor.com/view/monkey-circle-monkey-circle-gif-15230643">Monkey Circle GIF</a>from <a href="https://tenor.com/search/monkey-gifs">Monkey GIFs</a></div> <script type="text/javascript" async src="https://tenor.com/embed.js"></script>
+	-->
+	<nav>
+	  <a href="#footer"><button>bottom</button></a>
+	  <a href="#header"><button id="btop">top</button></a>
+	  <a href="text/plain:wip" style="all:initial;">
+		<button>View the source!</button>
+	  </a>
+	</nav>
+
+	<article>
+		<p>
+			This is a yet-to-be-implemented demake of the programming language Smalltalk,
+			which is heavily based on the object-oriented paradigm.
+			In fact, it's so object-oriented, it almost feels a bit... functional.
+			Of course, state is basically 1/3rd of the language:
+			<blockquote>
+				A Smalltalk object can do exactly three things:
+				<ol>
+					<li>Hold state (references to other objects).</li>
+					<li>Receive a message from itself or another object.</li>
+					<li>In the course of processing a message,
+						send messages to itself or another object.</li>
+				</ol>
+			</blockquote>
+		Although, the other 2/3 seems to be functional, even though that's an imperative thing.
+		ok, i'll stop talking about that.
+		</p>
+		<p>
+			First, let's talk about the main thing: objects.
+			I'm gonna take an approach similar to Squeak
+			(the most mainstream Smalltalk dialect!),
+			and make a class a directory.
+			The directory will contain other inherited classes as directories,
+			and methods as files. The names of these will be the names of the classes and methods.
+			Here's an example, where <kbd>-</kbd> is a level,
+			and <kbd>$</kbd> is a file instead of a directory:
+<pre>
+	Object
+	- Magnitude
+	-- Number
+	--$ +;x;
+	--$ -;x;
+	--- Float
+	---$ round;
+	--- Integer
+	---$ isDivisibleBy:
+	---$ toBase:
+</pre>
+		As you can see, the : suffix behaves like Squeak, while the ; suffix is invisible.
+		So, it's <samp>3 toBase: 2</samp>, but it's <samp>3 + 4</samp>.
+		I guess this also means composition is just symbolic links...
+		<note>You can escape colons,
+			but you have to do <samp>\:</samp>,
+			which for you is <samp>\\:</samp>.</note>
+		You can prefix file names with <kbd>^</kbd> to make them private
+		to the object from it's subclass object(s). Calling a class by itself
+		(e.g. to set a variable to) uses the init or init: method.
+		</p>
+		<p>
+			Arbritrary amounts of input should be manhandled (manually handled).
+			But you know what else should be manhandled? returning.
+			Instead of self and thisContext, we have <samp>this</samp>.
+			We can call <samp>this :: 1</samp> to <strong>become</strong>,
+			and <samp>this := x 1</samp> to <em>hold</em>,
+			reminiscent of functio&mdash;Oh, wow, haha.
+			Becoming doesn't change the object's class, just that object.
+			The Object class will have a <samp>hasHeld:</samp> for variables,
+			that returns false by default, and has to be changed by inheritors.
+			(Don't worry, true and false aren't psuedovariables,
+			they're just normal variables in the Object class.)
+			Also, super can be avoided by An OrderedCollection,
+			and <samp>this</samp> actually refers to the local space.
+			So, <pre>[:a :b | this :: a + b;]</pre> works like ^.
+			Actually, you know what? I'll make blocks take exactly one argument,
+			and becuase of that you don't need the : prefix or the |.
+			So, it's now <pre>[a [b this :: a + b;]]</pre>
+		</p>
+		<p>
+			Let me just list some more things.
+			Strings are just arrays of characters, so you don't need them.
+			<kbd>;</kbd> replaces <kbd>.</kbd> as the command separator.
+			<kbd>&&</kbd> replaces <kbd>;</kbd> as the method separator.
+		</p>
+		<p>
+			This code snippet by Ralp Johnson:
+<pre>
+exampleWithNumber: x
+	| y |
+	true & false not & (nil isNil) ifFalse: [self halt].
+	y := self size + super size.
+	#($a #a 'a' 1 1.0)
+		do: [ :each |
+			Transcript show: (each class name);
+					   show: ' '].
+	^x < y
+</pre>
+			becomes:
+<pre>
+true & (false not) & 
+</pre>
+		</p>
+	</article>
+
+	<br><br><br>
+	<hr id="footer"/>
+
+	<!--disqus-->
+
+	<disqus>
+	  <div id="disqus_thread"></div>
+	  <!--Append #disqus_thread to the href attribute in your links. This will tell Disqus which links to look up and return the comment count. For example: <a href="http://foo.com/bar.html#disqus_thread">Link</a>.-->
+	  <script>
+		/**
+		 *  RECOMMENDED CONFIGURATION VARIABLES: EDIT AND UNCOMMENT THE SECTION BELOW TO INSERT DYNAMIC VALUES FROM YOUR PLATFORM OR CMS.
+		 *  LEARN WHY DEFINING THESE VARIABLES IS IMPORTANT: https://disqus.com/admin/universalcode/#configuration-variables    */
+
+		var disqus_config = function () {
+		  this.page.url = PAGE_URL; // Replace PAGE_URL with your page's canonical URL variable
+		  this.page.identifier = "apricot-glimmer-chokeberry-glitch-me"; // Replace PAGE_IDENTIFIER with your page's unique identifier variable
+		};
+
+		(function () {
+		  // DON'T EDIT BELOW THIS LINE
+		  var d = document,
+			s = d.createElement("script");
+		  s.src =
+			"https://apricot-glimmer-chokeberry-glitch-me.disqus.com/embed.js";
+		  s.setAttribute("data-timestamp", +new Date());
+		  (d.head || d.body).appendChild(s);
+		})();
+	  </script>
+	  <noscript>
+		Please enable JavaScript to view the
+		<a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a>
+	  </noscript>
+	  <script
+		id="dsq-count-scr"
+		src="//apricot-glimmer-chokeberry-glitch-me.disqus.com/count.js"
+		async></script>
+	  <!--edit src?-->
+	</disqus>
+  </body>
+</html>
