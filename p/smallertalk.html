@@ -4,19 +4,10 @@
 	<meta charset="utf-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<link rel="icon" href="https://glitch.com/favicon.ico">
-	<link rel="stylesheet" href="/style.css">
+	<link rel="stylesheet" href="../style.css">
 	<script src="/script.js" defer></script>
-	<!--<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script> (latex is auto, so in <p> e.g.) -->
-	<!--remove!--><meta http-equiv="refresh" content="3;url=https://www.example.com">
 	<title>smallertalk</title>
   </head>
-  <!-- or, instead of mathjax (http://blog.dreasgrech.com/2009/12/jslatex-jquery-plugin-to-directly-embed.html)
-  <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.3.2/jquery.min.js"></script>
-  <script src="jquery.jslatex.js"></script>
-  <script>$(function () {$(".latex").latex();});</script>
-  <div class="latex">
-	  \int_{0}^{\pi}\frac{x^{4}\left(1-x\right)^{4}}{1+x^{2}}dx =\frac{22}{7}-\pi
-  </div>-->
   <body>
 	jul 18, 3:33 am
 	<header id="header">
@@ -29,8 +20,6 @@
 		</div>
 	  </div>
 	</header>
-	<!--<div class="tenor-gif-embed" data-postid="15230643" data-share-method="host" data-aspect-ratio="1" data-width="45%"><a href="https://tenor.com/view/monkey-circle-monkey-circle-gif-15230643">Monkey Circle GIF</a>from <a href="https://tenor.com/search/monkey-gifs">Monkey GIFs</a></div> <script type="text/javascript" async src="https://tenor.com/embed.js"></script>
-	-->
 	<nav>
 	  <a href="#footer"><button>bottom</button></a>
 	  <a href="#header"><button id="btop">top</button></a>
@@ -67,26 +56,32 @@
 			Here's an example, where <kbd>-</kbd> is a level,
 			and <kbd>$</kbd> is a file instead of a directory:
 <pre>
-	Object
-	- Magnitude
-	-- Number
-	--$ +;x;
-	--$ -;x;
-	--- Float
-	---$ round;
-	--- Integer
-	---$ isDivisibleBy:
-	---$ toBase:
+Object
+- Magnitude
+-- Number
+--$ +:x
+--$ -:x
+--- Float
+---$ round;
+--- Integer
+---$ isDivisibleBy\::x
+---$ toBase\::x
 </pre>
-		As you can see, the : suffix behaves like Squeak, while the ; suffix is invisible.
+		As you can see, the : suffix allows input, while the ; suffix doesn't. Both are invisible.
 		So, it's <samp>3 toBase: 2</samp>, but it's <samp>3 + 4</samp>.
 		I guess this also means composition is just symbolic links...
-		<note>You can escape colons,
+		<note>You can escape colons and semicolons,
 			but you have to do <samp>\:</samp>,
-			which for you is <samp>\\:</samp>.</note>
+			which for you is <samp>\\:</samp>,
+			which would, with :, be <samp>\\::</samp>.</note>
 		You can prefix file names with <kbd>^</kbd> to make them private
 		to the object from it's subclass object(s). Calling a class by itself
 		(e.g. to set a variable to) uses the init or init: method.
+		Ambiguity in the form of having two methods start the same,
+		but have different amounts of parameters throws an error.
+		Also, classes are now objects that simply hold objects.
+		If an object doesn't have a method, it passes it to its class,
+		which can also pass it to its class, ad infinitum.
 		</p>
 		<p>
 			Arbritrary amounts of input should be manhandled (manually handled).
@@ -98,11 +93,11 @@
 			Becoming doesn't change the object's class, just that object.
 			The Object class will have a <samp>hasHeld:</samp> for variables,
 			that returns false by default, and has to be changed by inheritors.
-			(Don't worry, true and false aren't psuedovariables,
-			they're just normal variables in the Object class.)
+			(Don't worry, true, false, and nil aren't psuedovariables,
+			they're just normal variables made in the Object class.)
 			Also, super can be avoided by An OrderedCollection,
 			and <samp>this</samp> actually refers to the local space.
-			So, <pre>[:a :b | this :: a + b;]</pre> works like ^.
+			So, <pre>[:a :b | this :: a + b;]</pre> works like a Polish notation +.
 			Actually, you know what? I'll make blocks take exactly one argument,
 			and becuase of that you don't need the : prefix or the |.
 			So, it's now <pre>[a [b this :: a + b;]]</pre>
@@ -110,11 +105,14 @@
 		<p>
 			Let me just list some more things.
 			Strings are just arrays of characters, so you don't need them.
+			Symbols are just faster strings, so no to those either.
+			
 			<kbd>;</kbd> replaces <kbd>.</kbd> as the command separator.
+			(I do like ., but ; is just the standard!)
 			<kbd>&&</kbd> replaces <kbd>;</kbd> as the method separator.
 		</p>
 		<p>
-			This code snippet by Ralp Johnson:
+			This code snippet by Ralph Johnson:
 <pre>
 exampleWithNumber: x
 	| y |
@@ -128,7 +126,13 @@ exampleWithNumber: x
 </pre>
 			becomes:
 <pre>
-true & (false not) & 
+(true & false) not & (nil isNil) ifFalse: [this :: 0];
+this := y (this size + super size);
+OrderedCollection add: $a add: (OrderedCollection) add: $a add: 1 add: 1.0
+do: [each
+	Transcript show: (each name) &&
+	show: $ ];
+this :: (x < y);
 </pre>
 		</p>
 	</article>
