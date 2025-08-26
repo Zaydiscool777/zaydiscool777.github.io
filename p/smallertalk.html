@@ -122,7 +122,7 @@ exampleWithNumber: x
 		do: [ :each |
 			Transcript show: (each class name);
 					   show: ' '].
-	^x < y
+	^x &lt; y
 </pre>
 			becomes:
 <pre>
@@ -132,7 +132,7 @@ OrderedCollection add: $a add: (OrderedCollection) add: $a add: 1 add: 1.0
 do: [each
 	Transcript show: (each name) &&
 	show: $ ];
-this :: (x < y);
+this :: (x &lt; y);
 </pre>
 		</p>
 	</article>
