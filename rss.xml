@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8"?>
+<head>
+	<title>small-def (main rss)</title>
+	<base href="https://zaydiscool777/github.io/">
+	<link rel="alternate" type="application/rss+xml" href="rss-feed">
+</head>
+<rss version="2.0" xlmns:atom="http://www.w3.org/2005/Atom" xlmns:prefix="https://zaydiscool777/github.io/">
+	<channel>
+		<title>small-def (main rss)</title>
+		<link>https://zaydiscool777/github.io/</link>
+		<atom:link href="https://zaydiscool777/github.io/rss.xml" rel="self" type="application/rss+xml" />
+		<description>funny syndication</description>
+		<language>en-us</language>
+		<docs>https://www.rssboard.org/rss-specification</docs>
+		<managingEditor>zaydiscool777@gmail.com</managingEditor>
+		<copyright xml:space="preserve">
+Copyright 2025 Zayd Mohammed
+
+Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
+
+1. Redistributions of source code must retain the above copyright notice, this list of conditions and the following disclaimer.
+
+2. Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the following disclaimer in the documentation and/or other materials provided with the distribution.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS “AS IS” AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+		</copyright>
+		<item>
+			<author>zaydiscool777@gmail.com</author>
+			<title>convey (the esolang)</title>
+			<link>/p/convey.html</link>
+		</item>
+		<item>
+			<author>zaydiscool777@gmail.com</author>
+			<description>i was going to make this an api that gives you data for that day, like stocks, weather, time, etc., but i don't have enough time for it.</description>
+			<link>/test/tentative.html</link>
+		</item>
+		<item>
+			<author>zaydiscool777@gmail.com</author>
+			<title>funny thing i found :)</title>
+			<link>/p/abc.html</link>
+		</item>
+		<item>
+			<author>zaydiscool777@gmail.com</author>
+			<title>&gt;&gt;= (about monads)</title>
+			<link>/p/monad.html</link>
+		</item>
+		<item>
+			<author>zaydiscool777@gmail.com</author>
+			<title>small latex test</title>
+			<link>/test/latex.html</link>
+		</item>
+		<item>
+			<author>zaydiscool777@gmail.com</author>
+			<title>odd code i found</title>
+			<link>/p/geekcode.html</link>
+		</item>
+	</channel>
+</rss>
