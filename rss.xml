@@ -1,6 +1,4 @@
 <?xml version="1.0" encoding="utf-8"?>
-<title>small-def (main rss)</title>
-<base href="https://zaydiscool777/github.io/">
 <link rel="alternate" type="application/rss+xml" href="rss-feed">
 <rss version="2.0" xlmns:atom="http://www.w3.org/2005/Atom" xlmns:prefix="https://zaydiscool777/github.io/">
 	<channel>
