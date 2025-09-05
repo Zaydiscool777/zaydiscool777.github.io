@@ -3,7 +3,6 @@
 	<channel>
 		<title>small-def (main rss)</title>
 		<link>https://zaydiscool777/github.io/</link>
-		<atom:link href="https://zaydiscool777/github.io/rss.xml" rel="self" type="application/rss+xml" />
 		<description>funny syndication</description>
 		<language>en-us</language>
 		<docs>https://www.rssboard.org/rss-specification</docs>
@@ -26,6 +25,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS “AS IS” 
 		</item>
 		<item>
 			<author>zaydiscool777@gmail.com</author>
+			<title>testing environment</title>
 			<description>i was going to make this an api that gives you data for that day, like stocks, weather, time, etc., but i don't have enough time for it.</description>
 			<link>https://zaydiscool777/github.io/test/tentative.html</link>
 		</item>
