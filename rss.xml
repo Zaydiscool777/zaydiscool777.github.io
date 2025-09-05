@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<link rel="alternate" type="application/rss+xml" href="rss-feed">
-<rss version="2.0" xlmns:atom="http://www.w3.org/2005/Atom" xlmns:prefix="https://zaydiscool777/github.io/">
+<rss version="2.0">
 	<channel>
 		<title>small-def (main rss)</title>
 		<link>https://zaydiscool777/github.io/</link>
@@ -23,32 +22,32 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS “AS IS” 
 		<item>
 			<author>zaydiscool777@gmail.com</author>
 			<title>convey (the esolang)</title>
-			<link>/p/convey.html</link>
+			<link>https://zaydiscool777/github.io/p/convey.html</link>
 		</item>
 		<item>
 			<author>zaydiscool777@gmail.com</author>
 			<description>i was going to make this an api that gives you data for that day, like stocks, weather, time, etc., but i don't have enough time for it.</description>
-			<link>/test/tentative.html</link>
+			<link>https://zaydiscool777/github.io/test/tentative.html</link>
 		</item>
 		<item>
 			<author>zaydiscool777@gmail.com</author>
 			<title>funny thing i found :)</title>
-			<link>/p/abc.html</link>
+			<link>https://zaydiscool777/github.io/p/abc.html</link>
 		</item>
 		<item>
 			<author>zaydiscool777@gmail.com</author>
 			<title>&gt;&gt;= (about monads)</title>
-			<link>/p/monad.html</link>
+			<link>https://zaydiscool777/github.io/p/monad.html</link>
 		</item>
 		<item>
 			<author>zaydiscool777@gmail.com</author>
 			<title>small latex test</title>
-			<link>/test/latex.html</link>
+			<link>https://zaydiscool777/github.io/test/latex.html</link>
 		</item>
 		<item>
 			<author>zaydiscool777@gmail.com</author>
 			<title>odd code i found</title>
-			<link>/p/geekcode.html</link>
+			<link>https://zaydiscool777/github.io/p/geekcode.html</link>
 		</item>
 	</channel>
 </rss>
