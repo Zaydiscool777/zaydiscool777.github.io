@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Document</title>
+</head>
+
+<body>
+	<!-- Adds anchor links to all heading elements for easy section linking -->
+	<script>
+		document.querySelectorAll("h1, h2, h3, h4, h5, h6").forEach(el => el.classList.add("heading"));
+
+		document.querySelectorAll(".heading").forEach((heading, idx) => {
+			let id = heading.id;
+			if (!id) {
+				id = `heading-${idx}`;
+				heading.id = id;
+			}
+			// Create the link element
+			const link = document.createElement("a");
+			link.href = `#${id}`; // Link to itself using the ID
+			link.textContent = "🔗"; // Add an icon (e.g., chain link emoji)
+			link.title = "Copy link to this section"; // Tooltip for clarity
+			link.classList.add("headingln");
+			heading.appendChild(link); // Append the link to the heading
+		});
+	</script>
+	<!-- Styles for heading anchor links and hover visibility -->
+	<style>
+		.heading {
+			position: relative;
+		}
+
+		.heading a.headingln {
+			text-decoration: none;
+			color: inherit;
+			position: absolute;
+			right: -20px;
+			/* Adjust to position the link icon */
+			font-size: 0.8em;
+			visibility: hidden;
+			/* Hidden until hover */
+		}
+
+		.heading:hover a.headingln {
+			visibility: visible;
+		}
+	</style>
+	<h2 id="sdfkjl">My Heading</h2>
+	<h2>Another Heading</h2>
+</body>
+
+</html>

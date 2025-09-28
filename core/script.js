@@ -24,8 +24,8 @@ $("#elementID").css({"css-property": "css-attribute", "css-property": "css-attri
 //you can also make them nice by adding line breaks
 //Example: 
 $("#elementID").css({
-  "css-property": "css-attribute",
-  "css-property": "css-attribute"});
+	"css-property": "css-attribute",
+	"css-property": "css-attribute"});
 //You can add as much CSS property and attribute as you want
 //just make sure, always end it with a comma before adding another one
 //the last property doesn't need a comma*/
@@ -33,5 +33,5 @@ $("#elementID").css({
 // https://stackoverflow.com/users/1061967/michael-zaporozhets
 //const isMobile = navigator.userAgentData.mobile; //resolves true/false
 //if (true){
-  //document.getElementByID("btop").style.display = "none";
+	//document.getElementByID("btop").style.display = "none";
 //}

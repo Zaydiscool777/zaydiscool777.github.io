@@ -1,109 +1,263 @@
-<html lang="en"><head><title>Play Slope 3 Game Online !</title><meta charset="utf-8"><meta name="robots" content="noindex, nofollow, noodp, noydir"><meta name="viewport" content="width=device-width, maximum-scale=1.0, initial-scale=1.0, user-scalable=no, minimal-ui"><meta http-equiv="X-UA-Compatible" content="requiresActiveX=true,IE=Edge,chrome=1"><meta http-equiv="Content-Language" content="en-US"><style>\* { margin: 0; padding: 0; box-sizing: border-box; font-family: "Helvetica Neue", "Calibri Light", Roboto, sans-serif; } #missing-flash { display: none; text-align: center } .fl-wrap { margin: 0 auto; background-color: #FFF; padding: 20px; position: absolute; height: 100%; width: 100%; z-index: 9999; } .fl-content { color: #fff } .fl-game { display: flex; height: 95%; justify-content: center; align-items: center; } .fl-game a{ position: absolute; z-index: 9999; text-decoration: none } .fl-game span{ color: #FFF; background-color: #3281ff; padding: 10px 15px; border-radius: 5px; cursor: pointer; font-weight: bold; text-transform: uppercase; } .fl-game span:hover{ background-color: #009cff } .missing-flash-bg{ position: absolute; top: 0; left: 0; width: 100%; height: 100%; -webkit-filter: blur(0.8em); filter: blur(0.8em); opacity: 0.25; }
+<html lang="en">
 
-* { margin: 0; padding: 0; box-sizing: border-box; } html, body { background-color: rgba(0, 0, 0, 0.4); } .a0 { position: fixed; top: 0; left: 0; bottom: 0; right: 0; z-index: 1; } .a1 { display: table; width: 100%; height: 100%; text-align: center; } .a2 { display: table-cell; vertical-align: middle; } .a3 { height: 30px; position: fixed; bottom: 0; left: 0; transition: all .3s; } .o1 { background-color: #002b50; width: 100%; z-index: 2; } .o2 { background-color: #009cff; width: 0%; z-index: 3; }
+<head>
+	<title>Play Slope 3 Game Online !</title>
+	<meta charset="utf-8">
+	<meta name="robots" content="noindex, nofollow, noodp, noydir">
+	<meta name="viewport"
+		content="width=device-width, maximum-scale=1.0, initial-scale=1.0, user-scalable=no, minimal-ui">
+	<meta http-equiv="X-UA-Compatible" content="requiresActiveX=true,IE=Edge,chrome=1">
+	<meta http-equiv="Content-Language" content="en-US">
+	<style>
+		\* {
+			margin: 0;
+			padding: 0;
+			box-sizing: border-box;
+			font-family: "Helvetica Neue", "Calibri Light", Roboto, sans-serif;
+		}
 
-.enable_flash{ color: #FFF; background-color: #3281ff; padding: 10px 15px; border-radius: 5px; cursor: pointer; font-weight: bold; text-transform: uppercase; position: absolute; top: 200px; left: 50%; transform: translateX(-50%); color: #fff900 !important;} .bt{ position: absolute; left: 50%; transform: translateX(-50%); bottom: -50px;}
+		#missing-flash {
+			display: none;
+			text-align: center
+		}
 
-.adobetext{ top: 250px;width: 100%;}
+		.fl-wrap {
+			margin: 0 auto;
+			background-color: #FFF;
+			padding: 20px;
+			position: absolute;
+			height: 100%;
+			width: 100%;
+			z-index: 9999;
+		}
 
-.btnstart {
+		.fl-content {
+			color: #fff
+		}
 
-background: hsl(340deg 100% 32%);
+		.fl-game {
+			display: flex;
+			height: 95%;
+			justify-content: center;
+			align-items: center;
+		}
 
-border-radius: 12px;
+		.fl-game a {
+			position: absolute;
+			z-index: 9999;
+			text-decoration: none
+		}
 
-border: none;
+		.fl-game span {
+			color: #FFF;
+			background-color: #3281ff;
+			padding: 10px 15px;
+			border-radius: 5px;
+			cursor: pointer;
+			font-weight: bold;
+			text-transform: uppercase;
+		}
 
-padding: 0;
+		.fl-game span:hover {
+			background-color: #009cff
+		}
 
-cursor: pointer;
+		.missing-flash-bg {
+			position: absolute;
+			top: 0;
+			left: 0;
+			width: 100%;
+			height: 100%;
+			-webkit-filter: blur(0.8em);
+			filter: blur(0.8em);
+			opacity: 0.25;
+		}
 
-outline-offset: 4px;
+		* {
+			margin: 0;
+			padding: 0;
+			box-sizing: border-box;
+		}
 
-width: 190px;
+		html,
+		body {
+			background-color: rgba(0, 0, 0, 0.4);
+		}
 
-margin: auto;
+		.a0 {
+			position: fixed;
+			top: 0;
+			left: 0;
+			bottom: 0;
+			right: 0;
+			z-index: 1;
+		}
 
-text-align: center;
+		.a1 {
+			display: table;
+			width: 100%;
+			height: 100%;
+			text-align: center;
+		}
 
-}
+		.a2 {
+			display: table-cell;
+			vertical-align: middle;
+		}
 
-.btnfront {
+		.a3 {
+			height: 30px;
+			position: fixed;
+			bottom: 0;
+			left: 0;
+			transition: all .3s;
+		}
 
-display: block;
+		.o1 {
+			background-color: #002b50;
+			width: 100%;
+			z-index: 2;
+		}
 
-padding: 11px;
+		.o2 {
+			background-color: #009cff;
+			width: 0%;
+			z-index: 3;
+		}
 
-border-radius: 12px;
+		.enable_flash {
+			color: #FFF;
+			background-color: #3281ff;
+			padding: 10px 15px;
+			border-radius: 5px;
+			cursor: pointer;
+			font-weight: bold;
+			text-transform: uppercase;
+			position: absolute;
+			top: 200px;
+			left: 50%;
+			transform: translateX(-50%);
+			color: #fff900 !important;
+		}
 
-font-size: 1.25rem;
+		.bt {
+			position: absolute;
+			left: 50%;
+			transform: translateX(-50%);
+			bottom: -50px;
+		}
 
-background: hsl(345deg 100% 47%);
+		.adobetext {
+			top: 250px;
+			width: 100%;
+		}
 
-color: white;
+		.btnstart {
 
-transform: translateY(-6px);
+			background: hsl(340deg 100% 32%);
 
-}
+			border-radius: 12px;
 
-.btnstart:active .btnfront {
+			border: none;
 
-transform: translateY(-2px);
+			padding: 0;
 
-}
+			cursor: pointer;
 
-.box-start img{
+			outline-offset: 4px;
 
-margin: 15px;
+			width: 190px;
 
-border-radius: 11px;
+			margin: auto;
 
-width: 50%;
+			text-align: center;
 
-}
+		}
 
-.box-start{
+		.btnfront {
 
-width: auto;
+			display: block;
 
-margin: 0;
+			padding: 11px;
 
-position: absolute;
+			border-radius: 12px;
 
-top: 50%;
+			font-size: 1.25rem;
 
-left: 50%;
+			background: hsl(345deg 100% 47%);
 
--ms-transform: translate(-50%, -50%);
+			color: white;
 
-transform: translate(-50%, -50%);
+			transform: translateY(-6px);
 
-background: #000;
+		}
 
-}
+		.btnstart:active .btnfront {
 
-.box-start-img{
+			transform: translateY(-2px);
 
-width: fit-content;
+		}
 
-margin: auto;
+		.box-start img {
 
-text-align: center;
+			margin: 15px;
 
-}
+			border-radius: 11px;
 
-#play_box{
+			width: 50%;
 
-position: relative;
+		}
 
-width: 100%;
+		.box-start {
 
-height: 100%;
+			width: auto;
 
-background: #000;
+			margin: 0;
 
-}</style>
+			position: absolute;
 
-</head><body><script> var cached="cached\_me\_please"</script><iframe id="iframehtml5" width="100%" height="100%" src="https://games-online.io/game/Slope3/" frameborder="0" border="0" scrolling="no" class="iframe-default " allowfullscreen=""></iframe>
+			top: 50%;
 
-</body></html><!--from reddit user Sensitive_Jello_75. Doesn't look like the Y8 Slope we all know and love.-->
+			left: 50%;
+
+			-ms-transform: translate(-50%, -50%);
+
+			transform: translate(-50%, -50%);
+
+			background: #000;
+
+		}
+
+		.box-start-img {
+
+			width: fit-content;
+
+			margin: auto;
+
+			text-align: center;
+
+		}
+
+		#play_box {
+
+			position: relative;
+
+			width: 100%;
+
+			height: 100%;
+
+			background: #000;
+
+		}
+	</style>
+
+</head>
+
+<body>
+	<script> var cached = "cached\_me\_please"</script><iframe id="iframehtml5" width="100%" height="100%"
+		src="https://games-online.io/game/Slope3/" frameborder="0" border="0" scrolling="no" class="iframe-default "
+		allowfullscreen=""></iframe>
+
+</body>
+
+</html><!--from reddit user Sensitive_Jello_75. Doesn't look like the Y8 Slope we all know and love.-->

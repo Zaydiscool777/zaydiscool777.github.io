@@ -1,707 +1,707 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="author" content="Zayd Mohammed">
-    <link rel="icon" href="https://glitch.com/favicon.ico" />
-    <title>convey</title>
-    <link rel="stylesheet" href="/style.css" />
-    <script src="/script.js" defer></script>
-  </head>
-  <body>
-    sep. 17-ish
-    sep. 20
-    <header id="header">
-      <div id="back1">
-        <div class="grad">
-          <a href="/"><img
-            src="https://t4.ftcdn.net/jpg/00/32/16/37/240_F_32163764_TVGoyLxIBzW7rlkpXFoqsBpFCcdrM4ag.jpg"
-            id="logo"
-          /></a><br />
-          convey
-        </div>
-      </div>
-    </header>
-    <nav>
-      <a href="#footer"><button>bottom</button></a>
-      <a href="#header"><button id="btop">top</button></a>
-    </nav>
-    
-    <article>
-      <p>
-      … is a somewhat codegolf-y 2D esolang based on conveyor belts, that will
-      push values around in a factory.
-    </p>
-    Here are some examples made by the creator himself: 
-    <table>
-      <tbody>
-        <tr>
-          <td>Sum of a list</td>
-          <td>
-            <code>
-              }<br />
-              {/+?<br />
-              &gt;,^<br />
-            </code>
-          </td>
-        </tr>
-        <tr>
-          <td>All Fibboncci numbers</td>
-          <td>
-            <code>
-              1"&lt;<br />
-              "+1<br />
-              }<br />
-            </code>
-          </td>
-        </tr>
-        <tr>
-          <td>Return only odd numbers</td>
-          <td>
-            <code>
-              {"v<br />
-              2|!}<br />
-            </code>
-          </td>
-        </tr>
-      </tbody>
-    </table>
-    <br />See <a href="https://xn--wxa.land/convey/">λ.land/convey/</a> for
-    much more.
+	<head>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		<meta name="author" content="Zayd Mohammed">
+		<link rel="icon" href="https://glitch.com/favicon.ico" />
+		<title>convey</title>
+		<link rel="stylesheet" href="/style.css" />
+		<script src="/script.js" defer></script>
+	</head>
+	<body>
+		sep. 17-ish
+		sep. 20
+		<header id="header">
+			<div id="back1">
+				<div class="grad">
+					<a href="/"><img
+						src="../fotoSob.jpg"
+						id="logo"
+					/></a><br />
+					convey
+				</div>
+			</div>
+		</header>
+		<nav>
+			<a href="#footer"><button>bottom</button></a>
+			<a href="#header"><button id="btop">top</button></a>
+		</nav>
+		
+		<article>
+			<p>
+			… is a somewhat codegolf-y 2D esolang based on conveyor belts, that will
+			push values around in a factory.
+		</p>
+		Here are some examples made by the creator himself: 
+		<table>
+			<tbody>
+				<tr>
+					<td>Sum of a list</td>
+					<td>
+						<code>
+							}<br />
+							{/+?<br />
+							&gt;,^<br />
+						</code>
+					</td>
+				</tr>
+				<tr>
+					<td>All Fibboncci numbers</td>
+					<td>
+						<code>
+							1"&lt;<br />
+							"+1<br />
+							}<br />
+						</code>
+					</td>
+				</tr>
+				<tr>
+					<td>Return only odd numbers</td>
+					<td>
+						<code>
+							{"v<br />
+							2|!}<br />
+						</code>
+					</td>
+				</tr>
+			</tbody>
+		</table>
+		<br />See <a href="https://xn--wxa.land/convey/">λ.land/convey/</a> for
+		much more.
 
-    <h2>Values and Constants</h2>
+		<h2>Values and Constants</h2>
 
-    <p>
-      There are three type of values: Numbers, characters and default values (<kbd>_</kbd>). A list is just a collection of values that
-      are next to each other. Default values behave based on the function they
-      are pushed into, e.g. <kbd>_</kbd> into <kbd>+</kbd> is 0,
-      <kbd>_</kbd> into <kbd>*</kbd> is 1. Numbers and characters can be used
-      interchangeably and will be casted to and from their ASCII value, though
-      the resulting type will be the one of the main port. There can be only one
-      value on a tile (The two exceptions are <kbd>&</kbd> and <kbd>~.</kbd>, which can
-      queue values).
-    </p>
+		<p>
+			There are three type of values: Numbers, characters and default values (<kbd>_</kbd>). A list is just a collection of values that
+			are next to each other. Default values behave based on the function they
+			are pushed into, e.g. <kbd>_</kbd> into <kbd>+</kbd> is 0,
+			<kbd>_</kbd> into <kbd>*</kbd> is 1. Numbers and characters can be used
+			interchangeably and will be casted to and from their ASCII value, though
+			the resulting type will be the one of the main port. There can be only one
+			value on a tile (The two exceptions are <kbd>&</kbd> and <kbd>~.</kbd>, which can
+			queue values).
+		</p>
 
-    <p>
-      Strings are enclosed within single quotes, e.g.
-      <code>'Hello World!'</code>. If numbers, strings or <kbd>_</kbd> are at a
-      start of a conveyor belt line, they are generators and will produce their
-      respective value whenever possible. If they are in the middle of a
-      conveyor belt line, they are placed there at the initialization of the
-      factory.
-    </p>
+		<p>
+			Strings are enclosed within single quotes, e.g.
+			<code>'Hello World!'</code>. If numbers, strings or <kbd>_</kbd> are at a
+			start of a conveyor belt line, they are generators and will produce their
+			respective value whenever possible. If they are in the middle of a
+			conveyor belt line, they are placed there at the initialization of the
+			factory.
+		</p>
 
-    <p>
-      The program halts when no value moved last step and no value is waiting
-      with <kbd>~</kbd>.
-    </p>
+		<p>
+			The program halts when no value moved last step and no value is waiting
+			with <kbd>~</kbd>.
+		</p>
 
-    <h2>Functions</h2>
+		<h2>Functions</h2>
 
-    <p>
-      Every function has a fixed number of input and output ports, e.g.
-      <kbd>+</kbd> has 2 inputs and 1 output. Conveyor belt directions are
-      inferred to connect each input to an output port. A program that is
-      ambigious is erroneous. In this case, the conveyor belt operators are, as
-      needed: <kbd>&gt; v &lt; ^</kbd>. They output into the direction they are
-      pointing to and take exactly one input from any other direction.
-    </p>
+		<p>
+			Every function has a fixed number of input and output ports, e.g.
+			<kbd>+</kbd> has 2 inputs and 1 output. Conveyor belt directions are
+			inferred to connect each input to an output port. A program that is
+			ambigious is erroneous. In this case, the conveyor belt operators are, as
+			needed: <kbd>&gt; v &lt; ^</kbd>. They output into the direction they are
+			pointing to and take exactly one input from any other direction.
+		</p>
 
-    <p>
-      All functions operate simultaneously. All functions, if not otherwise
-      specified, will only consume and produce blocks if every input port has a
-      value.
-    </p>
+		<p>
+			All functions operate simultaneously. All functions, if not otherwise
+			specified, will only consume and produce blocks if every input port has a
+			value.
+		</p>
 
-    <p>
-      Many functions have 3 ports: 2 of the same type, and 1 of the opposing
-      type. Whenever there are 2 ports of the same type, there is a distinction
-      between the main and the side port. One example, <kbd>-</kbd> has 2 input
-      ports and 1 output port. When both input ports have values, it will output
-      the main port value minus the side port value. Or, in otherwords, "x - y".
-    </p>
+		<p>
+			Many functions have 3 ports: 2 of the same type, and 1 of the opposing
+			type. Whenever there are 2 ports of the same type, there is a distinction
+			between the main and the side port. One example, <kbd>-</kbd> has 2 input
+			ports and 1 output port. When both input ports have values, it will output
+			the main port value minus the side port value. Or, in otherwords, "x - y".
+		</p>
 
-    <table>
-      <caption>
-        Port order for input and output
-      </caption>
-      <thead>
-        <tr>
-          <th>Input:</th>
-          <th>Output:</th>
-          <th>Example 1</th>
-          <th>Example 2</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr>
-          <td>
-            <code
-              ><div>&nbsp;&nbsp;0</div>
-              <div>&nbsp;&nbsp;v</div>
-              <div>1&gt;f&lt;3</div>
-              <div>&nbsp;&nbsp;^</div>
-              <div>&nbsp;&nbsp;2&nbsp;&nbsp;</div></code
-            >
-          </td>
-          <td>
-            <code
-              ><div>&nbsp;&nbsp;3</div>
-              <div>&nbsp;&nbsp;^</div>
-              <div>2&lt;f&gt;0</div>
-              <div>&nbsp;&nbsp;v</div>
-              <div>&nbsp;&nbsp;1&nbsp;&nbsp;</div></code
-            >
-          </td>
-          <td>
-            <code
-              ><div>9</div>
-              <div>v</div>
-              <div>-&gt;}</div>
-              <div>^</div>
-              <div>7</div></code
-            >
-          </td>
-          <td>
-            <code
-              ><div>&nbsp;&nbsp;}</div>
-              <div>&nbsp;&nbsp;^</div>
-              <div>8&gt;?&gt;}</div></code
-            >
-          </td>
-        </tr>
-      </tbody>
-    </table>
+		<table>
+			<caption>
+				Port order for input and output
+			</caption>
+			<thead>
+				<tr>
+					<th>Input:</th>
+					<th>Output:</th>
+					<th>Example 1</th>
+					<th>Example 2</th>
+				</tr>
+			</thead>
+			<tbody>
+				<tr>
+					<td>
+						<code
+							><div>&nbsp;&nbsp;0</div>
+							<div>&nbsp;&nbsp;v</div>
+							<div>1&gt;f&lt;3</div>
+							<div>&nbsp;&nbsp;^</div>
+							<div>&nbsp;&nbsp;2&nbsp;&nbsp;</div></code
+						>
+					</td>
+					<td>
+						<code
+							><div>&nbsp;&nbsp;3</div>
+							<div>&nbsp;&nbsp;^</div>
+							<div>2&lt;f&gt;0</div>
+							<div>&nbsp;&nbsp;v</div>
+							<div>&nbsp;&nbsp;1&nbsp;&nbsp;</div></code
+						>
+					</td>
+					<td>
+						<code
+							><div>9</div>
+							<div>v</div>
+							<div>-&gt;}</div>
+							<div>^</div>
+							<div>7</div></code
+						>
+					</td>
+					<td>
+						<code
+							><div>&nbsp;&nbsp;}</div>
+							<div>&nbsp;&nbsp;^</div>
+							<div>8&gt;?&gt;}</div></code
+						>
+					</td>
+				</tr>
+			</tbody>
+		</table>
 
-    <p>A dot (<kbd>.</kbd>) in a function's output will alter the function.</p>
+		<p>A dot (<kbd>.</kbd>) in a function's output will alter the function.</p>
 
-    <table>
-      <caption>
-        Example:
-      </caption>
-      <thead>
-        <tr>
-          <th>Addition</th>
-          <th>Maximum</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr>
-          <td><code>1+2<br />&nbsp;}</code></td>
-          <td><code>1+2<br />&nbsp;.}</code></td>
-        </tr>
-      </tbody>
-    </table>
-    <!--<div style="margin-top:8px">Made with <a href="https://www.htmltables.io/" target="_blank">HTML Tables</a></div>-->
-    <p>
-      <sm
-        >(But wait, why does row 2 look like that?)
-        <def
-          > This is because you put the <kbd>.</kbd> to under the function you want
-          to modify, then treat it as if it wasn't there. This is simply a minor
-          inconvenience when dealing with grid esolangs like these.</def
-        ></sm
-      >
-    </p>
+		<table>
+			<caption>
+				Example:
+			</caption>
+			<thead>
+				<tr>
+					<th>Addition</th>
+					<th>Maximum</th>
+				</tr>
+			</thead>
+			<tbody>
+				<tr>
+					<td><code>1+2<br />&nbsp;}</code></td>
+					<td><code>1+2<br />&nbsp;.}</code></td>
+				</tr>
+			</tbody>
+		</table>
+		<!--<div style="margin-top:8px">Made with <a href="https://www.htmltables.io/" target="_blank">HTML Tables</a></div>-->
+		<p>
+			<sm
+				>(But wait, why does row 2 look like that?)
+				<def
+					> This is because you put the <kbd>.</kbd> to under the function you want
+					to modify, then treat it as if it wasn't there. This is simply a minor
+					inconvenience when dealing with grid esolangs like these.</def
+				></sm
+			>
+		</p>
 
-    <h3>Function Definition</h3>
+		<h3>Function Definition</h3>
 
-    <p>
-      A function is declared with an uppercase letter within a connected belt
-      grid. Another function can then call this function with the corresponding
-      lowercase letter. <kbd>{</kbd> and <kbd>}</kbd> are the functions inputs
-      and outputs, and so a declared function can have up to 4 inputs and
-      outputs together. For example:<br />
-      <code>
-        &nbsp;&nbsp;&nbsp;&nbsp;1<br />
-        {&gt;A&gt;+&gt;} {&gt;a&gt;a&gt;}
-      </code><br />
-      In the above example, every input value will traverse twice through A and
-      will be incremented by 2 at the end. Recursion might or might not be
-      possible in the future.
-    </p>
+		<p>
+			A function is declared with an uppercase letter within a connected belt
+			grid. Another function can then call this function with the corresponding
+			lowercase letter. <kbd>{</kbd> and <kbd>}</kbd> are the functions inputs
+			and outputs, and so a declared function can have up to 4 inputs and
+			outputs together. For example:<br />
+			<code>
+				&nbsp;&nbsp;&nbsp;&nbsp;1<br />
+				{&gt;A&gt;+&gt;} {&gt;a&gt;a&gt;}
+			</code><br />
+			In the above example, every input value will traverse twice through A and
+			will be incremented by 2 at the end. Recursion might or might not be
+			possible in the future.
+		</p>
 
-    <h2>Vocabulary</h2>
+		<h2>Vocabulary</h2>
 
-    <sm
-      >(Is this sorted?)<def
-        > Why, yes, it is. The order is: Data, I/O, Control Flow, and Math.</def
-      ></sm
-    >
-    <sm>(What do each of the headers mean?)
-     <def> The in and out headers show how many of them need to be
-      put in or will come out simutaneously (unless the function cues).
-      The _x and _y shows what each function treats the default value
-      (<kbd>_</kbd>) like.</def> 
-    </sm>
-      <sm>(ps<def>: this table was made via <a href="https://www.tablesgenerator.com/html_tables">HTML Tables Generator</a></def>)</sm>
+		<sm
+			>(Is this sorted?)<def
+				> Why, yes, it is. The order is: Data, I/O, Control Flow, and Math.</def
+			></sm
+		>
+		<sm>(What do each of the headers mean?)
+		 <def> The in and out headers show how many of them need to be
+			put in or will come out simutaneously (unless the function cues).
+			The _x and _y shows what each function treats the default value
+			(<kbd>_</kbd>) like.</def> 
+		</sm>
+			<sm>(ps<def>: this table was made via <a href="https://www.tablesgenerator.com/html_tables">HTML Tables Generator</a></def>)</sm>
 
-    <!-- remind me to not use seo.ai. -->
-    <table>
-      <tbody>
-        <tr>
-          <th>Symbol</th>
-          <th>Name</th>
-          <th>In</th>
-          <th>Out</th>
-          <th>_x</th>
-          <th>_y</th>
-          <th>Description</th>
-        </tr>
-        <tr>
-          <td>Number</td>
-          <td></td>
-          <td>0</td>
-          <td>1</td>
-          <td></td>
-          <td></td>
-          <td>Generate the number</td>
-        </tr>
-        <tr>
-          <td>Number</td>
-          <td></td>
-          <td>1</td>
-          <td>1</td>
-          <td></td>
-          <td></td>
-          <td>Start with the number</td>
-        </tr>
-        <tr>
-          <td>'…'</td>
-          <td>String</td>
-          <td>0</td>
-          <td>1</td>
-          <td></td>
-          <td></td>
-          <td>Generate the string</td>
-        </tr>
-        <tr>
-          <td>'…'</td>
-          <td>String</td>
-          <td>1</td>
-          <td>1</td>
-          <td></td>
-          <td></td>
-          <td>Start with the string</td>
-        </tr>
-        <tr>
-          <td>_</td>
-          <td>Default</td>
-          <td>0</td>
-          <td>1</td>
-          <td></td>
-          <td></td>
-          <td>Generate _</td>
-        </tr>
-        <tr>
-          <td>_</td>
-          <td>Default</td>
-          <td>1</td>
-          <td>1</td>
-          <td></td>
-          <td></td>
-          <td>Start with _</td>
-        </tr>
-        <tr>
-          <td>.</td>
-          <td>Alternative</td>
-          <td>1</td>
-          <td>1</td>
-          <td></td>
-          <td></td>
-          <td>Modifies input function</td>
-        </tr>
-        <tr>
-          <td>`</td>
-          <td>Reverse</td>
-          <td>1</td>
-          <td>1</td>
-          <td></td>
-          <td></td>
-          <td>Reverses port order in input function</td>
-        </tr>
-        <tr>
-          <td>{</td>
-          <td>Input</td>
-          <td>0</td>
-          <td>1</td>
-          <td></td>
-          <td></td>
-          <td>Input</td>
-        </tr>
-        <tr>
-          <td>}</td>
-          <td>Ouput</td>
-          <td>1</td>
-          <td>0</td>
-          <td>\n</td>
-          <td></td>
-          <td>Output</td>
-        </tr>
-        <tr>
-          <td>[</td>
-          <td>Cap</td>
-          <td>0</td>
-          <td>1</td>
-          <td></td>
-          <td></td>
-          <td>Dummy output</td>
-        </tr>
-        <tr>
-          <td>]</td>
-          <td>Sink</td>
-          <td>1</td>
-          <td>0</td>
-          <td></td>
-          <td></td>
-          <td>Dummy input</td>
-        </tr>
-        <tr>
-          <td>,</td>
-          <td>Join</td>
-          <td>2</td>
-          <td>1</td>
-          <td></td>
-          <td></td>
-          <td>Join two paths favoring main input.</td>
-        </tr>
-        <tr>
-          <td>#</td>
-          <td>Crossing</td>
-          <td>2</td>
-          <td>2</td>
-          <td></td>
-          <td></td>
-          <td>
-            Crossing: one path must be vertical, the other horizontal. They do
-            not block each other.
-          </td>
-        </tr>
-        <tr>
-          <td>;</td>
-          <td>Gate</td>
-          <td>2</td>
-          <td>1</td>
-          <td></td>
-          <td></td>
-          <td>
-            Whenever a value from the side port enters, toggles between a closed
-            and open gate for the main path.
-          </td>
-        </tr>
-        <tr>
-          <td>:</td>
-          <td>Pass</td>
-          <td>2</td>
-          <td>1</td>
-          <td></td>
-          <td>1</td>
-          <td>Let y values through main path.</td>
-        </tr>
-        <tr>
-          <td>?</td>
-          <td>Try</td>
-          <td>1</td>
-          <td>2</td>
-          <td></td>
-          <td></td>
-          <td>If main output is blocked, move to side output.</td>
-        </tr>
-        <tr>
-          <td>@</td>
-          <td>Steer</td>
-          <td>2</td>
-          <td>2</td>
-          <td></td>
-          <td>1</td>
-          <td>Move x to main or side output, depending on boolean y.</td>
-        </tr>
-        <tr>
-          <td>"</td>
-          <td>Copy</td>
-          <td>1</td>
-          <td>2</td>
-          <td></td>
-          <td></td>
-          <td>Copy input to both outputs.</td>
-        </tr>
-        <tr>
-          <td>/</td>
-          <td>Raising</td>
-          <td>1</td>
-          <td>2</td>
-          <td></td>
-          <td></td>
-          <td>Output _ to side port <em>on</em> non-default input.</td>
-        </tr>
-        <tr>
-          <td>/.</td>
-          <td>Indices</td>
-          <td>1</td>
-          <td>2</td>
-          <td></td>
-          <td></td>
-          <td>Output indices to side port. (Like a permanent counter)</td>
-        </tr>
-        <tr>
-          <td>\</td>
-          <td>Falling</td>
-          <td>1</td>
-          <td>2</td>
-          <td></td>
-          <td></td>
-          <td>Output length to side port <em>on</em> absence of input.</td>
-        </tr>
-        <tr>
-          <td>&amp;</td>
-          <td><a href="https://xn--wxa.land/convey/run.html#eyJjIjoiICBbWzBcbiAgMTAhXG57dj4mLH1cbiB2XlxuID5eIiwidiI6MSwiaSI6IjEgMiAzIn0="></a>Queue</td>
-          <td>1</td>
-          <td>1</td>
-          <td></td>
-          <td></td>
-          <td>Queue value if output is blocked.</td>
-        </tr>
-        <tr>
-          <td>~</td>
-          <td>Wait</td>
-          <td>2</td>
-          <td>1</td>
-          <td></td>
-          <td>1</td>
-          <td>Wait for y time steps.</td>
-        </tr>
-        <tr>
-          <td>~.</td>
-          <td>Batch</td>
-          <td>2</td>
-          <td>1</td>
-          <td></td>
-          <td>1</td>
-          <td>Like &amp; but only outputs if y values are waiting.</td>
-        </tr>
-        <tr>
-          <td>!</td>
-          <td>Take</td>
-          <td>2</td>
-          <td>1</td>
-          <td></td>
-          <td>1</td>
-          <td>x duplicated y times.</td>
-        </tr>
-        <tr>
-          <td>$</td>
-          <td>Set</td>
-          <td>2</td>
-          <td>1</td>
-          <td></td>
-          <td></td>
-          <td>y</td>
-        </tr>
-        <tr>
-          <td>+</td>
-          <td>Plus</td>
-          <td>2</td>
-          <td>1</td>
-          <td>0</td>
-          <td></td>
-          <td>x + y</td>
-        </tr>
-        <tr>
-          <td>+.</td>
-          <td>Max</td>
-          <td>2</td>
-          <td>1</td>
-          <td>-∞</td>
-          <td></td>
-          <td>max(x, y)</td>
-        </tr>
-        <tr>
-          <td>-</td>
-          <td>Minus</td>
-          <td>2</td>
-          <td>1</td>
-          <td>0</td>
-          <td></td>
-          <td>x - y</td>
-        </tr>
-        <tr>
-          <td>-.</td>
-          <td>Minimum</td>
-          <td>2</td>
-          <td>1</td>
-          <td>∞</td>
-          <td></td>
-          <td>min(x, y)</td>
-        </tr>
-        <tr>
-          <td>*</td>
-          <td>Multiply</td>
-          <td>2</td>
-          <td>1</td>
-          <td>0</td>
-          <td></td>
-          <td>x × y</td>
-        </tr>
-        <tr>
-          <td>*.</td>
-          <td>Power</td>
-          <td>2</td>
-          <td>1</td>
-          <td>0</td>
-          <td><sm>e<def> (euler's number)</def></sm></td>
-          <td>y<sup>x</sup></td>
-        </tr>
-        <tr>
-          <td>%</td>
-          <td>Divide</td>
-          <td>2</td>
-          <td>1</td>
-          <td></td>
-          <td></td>
-          <td>x ÷ y, or iff y is _, then signum(x)</td>
-        </tr>
-        <tr>
-          <td>%.</td>
-          <td>Logarithm</td>
-          <td>2</td>
-          <td>1</td>
-          <td>0</td>
-          <td><sm>e<def> (euler's number)</def></sm></td>
-          <td>ln<sub>y</sub>(x)</td>
-        </tr>
-        <tr>
-          <td>|</td>
-          <td>Mod</td>
-          <td>2</td>
-          <td>1</td>
-          <td></td>
-          <td></td>
-          <td>x mod y, or iff y is _, then |x|</td>
-        </tr>
-        <tr>
-          <td>=</td>
-          <td>Equal</td>
-          <td>2</td>
-          <td><sm>1<def> (0 = false or 1 = true)</def></sm></td>
-          <td></td>
-          <td></td>
-          <td>x = y</td>
-        </tr>
-        <tr>
-          <td>=.</td>
-          <td>Different</td>
-          <td>2</td>
-          <td><sm>1<def> (0 = false or 1 = true)</def></sm></td>
-          <td></td>
-          <td></td>
-          <td>x ≠ y</td>
-        </tr>
-        <tr>
-          <td>(</td>
-          <td>Less</td>
-          <td>2</td>
-          <td><sm>1<def> (0 = false or 1 = true)</def></sm></td>
-          <td>-∞</td>
-          <td>∞</td>
-          <td>x &lt; y</td>
-        </tr>
-        <tr>
-          <td>(.</td>
-          <td>Lesseq</td>
-          <td>2</td>
-          <td><sm>1<def> (0 = false or 1 = true)</def></sm></td>
-          <td>-∞</td>
-          <td>∞</td>
-          <td>x ≤ y</td>
-        </tr>
-        <tr>
-          <td>)</td>
-          <td>Greater</td>
-          <td>2</td>
-          <td><sm>1<def> (0 = false or 1 = true)</def></sm></td>
-          <td>∞</td>
-          <td>-∞</td>
-          <td>x &gt; y</td>
-        </tr>
-        <tr>
-          <td>).</td>
-          <td>Greq</td>
-          <td>2</td>
-          <td><sm>1<def> (0 = false or 1 = true)</def></sm></td>
-          <td>∞</td>
-          <td>-∞</td>
-          <td>x ≥ y</td>
-        </tr>
-        <tr>
-          <td>&amp;.</td>
-          <td>Ceiling</td>
-          <td>1</td>
-          <td>1</td>
-          <td></td>
-          <td></td>
-          <td>⌈x⌉</td>
-        </tr>
-        <tr>
-          <td>_.</td>
-          <td>Floor</td>
-          <td>1</td>
-          <td>1</td>
-          <td></td>
-          <td></td>
-          <td>⌊x⌋</td>
-        </tr>
-      </tbody>
-    </table>
-      <hr>
-      This is a remaster (or really just an html-ified version) of the documentation of the progamming language (that could be esoteric),
-       convey. Thanks to xash for the original docs. you can access his itch at <a href="https://xash.itch.io">
-      xash.itch.io</a>. The interpreter? is <a href="https://xn--wxa.land/convey/run.html">here</a>, and
-       <a href="mailto:xash@xn--wxa.land">this</a> is his mail. (he also has a broken rss feed)
-      <br>
-      <note>also, some text in parentheses can be hovered over!</note>
-    </article>
-    <!--iframes and forms are weird-->
+		<!-- remind me to not use seo.ai. -->
+		<table>
+			<tbody>
+				<tr>
+					<th>Symbol</th>
+					<th>Name</th>
+					<th>In</th>
+					<th>Out</th>
+					<th>_x</th>
+					<th>_y</th>
+					<th>Description</th>
+				</tr>
+				<tr>
+					<td>Number</td>
+					<td></td>
+					<td>0</td>
+					<td>1</td>
+					<td></td>
+					<td></td>
+					<td>Generate the number</td>
+				</tr>
+				<tr>
+					<td>Number</td>
+					<td></td>
+					<td>1</td>
+					<td>1</td>
+					<td></td>
+					<td></td>
+					<td>Start with the number</td>
+				</tr>
+				<tr>
+					<td>'…'</td>
+					<td>String</td>
+					<td>0</td>
+					<td>1</td>
+					<td></td>
+					<td></td>
+					<td>Generate the string</td>
+				</tr>
+				<tr>
+					<td>'…'</td>
+					<td>String</td>
+					<td>1</td>
+					<td>1</td>
+					<td></td>
+					<td></td>
+					<td>Start with the string</td>
+				</tr>
+				<tr>
+					<td>_</td>
+					<td>Default</td>
+					<td>0</td>
+					<td>1</td>
+					<td></td>
+					<td></td>
+					<td>Generate _</td>
+				</tr>
+				<tr>
+					<td>_</td>
+					<td>Default</td>
+					<td>1</td>
+					<td>1</td>
+					<td></td>
+					<td></td>
+					<td>Start with _</td>
+				</tr>
+				<tr>
+					<td>.</td>
+					<td>Alternative</td>
+					<td>1</td>
+					<td>1</td>
+					<td></td>
+					<td></td>
+					<td>Modifies input function</td>
+				</tr>
+				<tr>
+					<td>`</td>
+					<td>Reverse</td>
+					<td>1</td>
+					<td>1</td>
+					<td></td>
+					<td></td>
+					<td>Reverses port order in input function</td>
+				</tr>
+				<tr>
+					<td>{</td>
+					<td>Input</td>
+					<td>0</td>
+					<td>1</td>
+					<td></td>
+					<td></td>
+					<td>Input</td>
+				</tr>
+				<tr>
+					<td>}</td>
+					<td>Ouput</td>
+					<td>1</td>
+					<td>0</td>
+					<td>\n</td>
+					<td></td>
+					<td>Output</td>
+				</tr>
+				<tr>
+					<td>[</td>
+					<td>Cap</td>
+					<td>0</td>
+					<td>1</td>
+					<td></td>
+					<td></td>
+					<td>Dummy output</td>
+				</tr>
+				<tr>
+					<td>]</td>
+					<td>Sink</td>
+					<td>1</td>
+					<td>0</td>
+					<td></td>
+					<td></td>
+					<td>Dummy input</td>
+				</tr>
+				<tr>
+					<td>,</td>
+					<td>Join</td>
+					<td>2</td>
+					<td>1</td>
+					<td></td>
+					<td></td>
+					<td>Join two paths favoring main input.</td>
+				</tr>
+				<tr>
+					<td>#</td>
+					<td>Crossing</td>
+					<td>2</td>
+					<td>2</td>
+					<td></td>
+					<td></td>
+					<td>
+						Crossing: one path must be vertical, the other horizontal. They do
+						not block each other.
+					</td>
+				</tr>
+				<tr>
+					<td>;</td>
+					<td>Gate</td>
+					<td>2</td>
+					<td>1</td>
+					<td></td>
+					<td></td>
+					<td>
+						Whenever a value from the side port enters, toggles between a closed
+						and open gate for the main path.
+					</td>
+				</tr>
+				<tr>
+					<td>:</td>
+					<td>Pass</td>
+					<td>2</td>
+					<td>1</td>
+					<td></td>
+					<td>1</td>
+					<td>Let y values through main path.</td>
+				</tr>
+				<tr>
+					<td>?</td>
+					<td>Try</td>
+					<td>1</td>
+					<td>2</td>
+					<td></td>
+					<td></td>
+					<td>If main output is blocked, move to side output.</td>
+				</tr>
+				<tr>
+					<td>@</td>
+					<td>Steer</td>
+					<td>2</td>
+					<td>2</td>
+					<td></td>
+					<td>1</td>
+					<td>Move x to main or side output, depending on boolean y.</td>
+				</tr>
+				<tr>
+					<td>"</td>
+					<td>Copy</td>
+					<td>1</td>
+					<td>2</td>
+					<td></td>
+					<td></td>
+					<td>Copy input to both outputs.</td>
+				</tr>
+				<tr>
+					<td>/</td>
+					<td>Raising</td>
+					<td>1</td>
+					<td>2</td>
+					<td></td>
+					<td></td>
+					<td>Output _ to side port <em>on</em> non-default input.</td>
+				</tr>
+				<tr>
+					<td>/.</td>
+					<td>Indices</td>
+					<td>1</td>
+					<td>2</td>
+					<td></td>
+					<td></td>
+					<td>Output indices to side port. (Like a permanent counter)</td>
+				</tr>
+				<tr>
+					<td>\</td>
+					<td>Falling</td>
+					<td>1</td>
+					<td>2</td>
+					<td></td>
+					<td></td>
+					<td>Output length to side port <em>on</em> absence of input.</td>
+				</tr>
+				<tr>
+					<td>&amp;</td>
+					<td><a href="https://xn--wxa.land/convey/run.html#eyJjIjoiICBbWzBcbiAgMTAhXG57dj4mLH1cbiB2XlxuID5eIiwidiI6MSwiaSI6IjEgMiAzIn0="></a>Queue</td>
+					<td>1</td>
+					<td>1</td>
+					<td></td>
+					<td></td>
+					<td>Queue value if output is blocked.</td>
+				</tr>
+				<tr>
+					<td>~</td>
+					<td>Wait</td>
+					<td>2</td>
+					<td>1</td>
+					<td></td>
+					<td>1</td>
+					<td>Wait for y time steps.</td>
+				</tr>
+				<tr>
+					<td>~.</td>
+					<td>Batch</td>
+					<td>2</td>
+					<td>1</td>
+					<td></td>
+					<td>1</td>
+					<td>Like &amp; but only outputs if y values are waiting.</td>
+				</tr>
+				<tr>
+					<td>!</td>
+					<td>Take</td>
+					<td>2</td>
+					<td>1</td>
+					<td></td>
+					<td>1</td>
+					<td>x duplicated y times.</td>
+				</tr>
+				<tr>
+					<td>$</td>
+					<td>Set</td>
+					<td>2</td>
+					<td>1</td>
+					<td></td>
+					<td></td>
+					<td>y</td>
+				</tr>
+				<tr>
+					<td>+</td>
+					<td>Plus</td>
+					<td>2</td>
+					<td>1</td>
+					<td>0</td>
+					<td></td>
+					<td>x + y</td>
+				</tr>
+				<tr>
+					<td>+.</td>
+					<td>Max</td>
+					<td>2</td>
+					<td>1</td>
+					<td>-∞</td>
+					<td></td>
+					<td>max(x, y)</td>
+				</tr>
+				<tr>
+					<td>-</td>
+					<td>Minus</td>
+					<td>2</td>
+					<td>1</td>
+					<td>0</td>
+					<td></td>
+					<td>x - y</td>
+				</tr>
+				<tr>
+					<td>-.</td>
+					<td>Minimum</td>
+					<td>2</td>
+					<td>1</td>
+					<td>∞</td>
+					<td></td>
+					<td>min(x, y)</td>
+				</tr>
+				<tr>
+					<td>*</td>
+					<td>Multiply</td>
+					<td>2</td>
+					<td>1</td>
+					<td>0</td>
+					<td></td>
+					<td>x × y</td>
+				</tr>
+				<tr>
+					<td>*.</td>
+					<td>Power</td>
+					<td>2</td>
+					<td>1</td>
+					<td>0</td>
+					<td><sm>e<def> (euler's number)</def></sm></td>
+					<td>y<sup>x</sup></td>
+				</tr>
+				<tr>
+					<td>%</td>
+					<td>Divide</td>
+					<td>2</td>
+					<td>1</td>
+					<td></td>
+					<td></td>
+					<td>x ÷ y, or iff y is _, then signum(x)</td>
+				</tr>
+				<tr>
+					<td>%.</td>
+					<td>Logarithm</td>
+					<td>2</td>
+					<td>1</td>
+					<td>0</td>
+					<td><sm>e<def> (euler's number)</def></sm></td>
+					<td>ln<sub>y</sub>(x)</td>
+				</tr>
+				<tr>
+					<td>|</td>
+					<td>Mod</td>
+					<td>2</td>
+					<td>1</td>
+					<td></td>
+					<td></td>
+					<td>x mod y, or iff y is _, then |x|</td>
+				</tr>
+				<tr>
+					<td>=</td>
+					<td>Equal</td>
+					<td>2</td>
+					<td><sm>1<def> (0 = false or 1 = true)</def></sm></td>
+					<td></td>
+					<td></td>
+					<td>x = y</td>
+				</tr>
+				<tr>
+					<td>=.</td>
+					<td>Different</td>
+					<td>2</td>
+					<td><sm>1<def> (0 = false or 1 = true)</def></sm></td>
+					<td></td>
+					<td></td>
+					<td>x ≠ y</td>
+				</tr>
+				<tr>
+					<td>(</td>
+					<td>Less</td>
+					<td>2</td>
+					<td><sm>1<def> (0 = false or 1 = true)</def></sm></td>
+					<td>-∞</td>
+					<td>∞</td>
+					<td>x &lt; y</td>
+				</tr>
+				<tr>
+					<td>(.</td>
+					<td>Lesseq</td>
+					<td>2</td>
+					<td><sm>1<def> (0 = false or 1 = true)</def></sm></td>
+					<td>-∞</td>
+					<td>∞</td>
+					<td>x ≤ y</td>
+				</tr>
+				<tr>
+					<td>)</td>
+					<td>Greater</td>
+					<td>2</td>
+					<td><sm>1<def> (0 = false or 1 = true)</def></sm></td>
+					<td>∞</td>
+					<td>-∞</td>
+					<td>x &gt; y</td>
+				</tr>
+				<tr>
+					<td>).</td>
+					<td>Greq</td>
+					<td>2</td>
+					<td><sm>1<def> (0 = false or 1 = true)</def></sm></td>
+					<td>∞</td>
+					<td>-∞</td>
+					<td>x ≥ y</td>
+				</tr>
+				<tr>
+					<td>&amp;.</td>
+					<td>Ceiling</td>
+					<td>1</td>
+					<td>1</td>
+					<td></td>
+					<td></td>
+					<td>⌈x⌉</td>
+				</tr>
+				<tr>
+					<td>_.</td>
+					<td>Floor</td>
+					<td>1</td>
+					<td>1</td>
+					<td></td>
+					<td></td>
+					<td>⌊x⌋</td>
+				</tr>
+			</tbody>
+		</table>
+			<hr>
+			This is a remaster (or really just an html-ified version) of the documentation of the progamming language (that could be esoteric),
+			 convey. Thanks to xash for the original docs. you can access his itch at <a href="https://xash.itch.io">
+			xash.itch.io</a>. The interpreter? is <a href="https://xn--wxa.land/convey/run.html">here</a>, and
+			 <a href="mailto:xash@xn--wxa.land">this</a> is his mail. (he also has a broken rss feed)
+			<br>
+			<note>also, some text in parentheses can be hovered over!</note>
+		</article>
+		<!--iframes and forms are weird-->
 
-    <br /><br /><br />
-    <hr id="footer"/>
-    
-    <!--disqus-->
-    
-    <disqus>
-      <div id="disqus_thread"></div>
-      <!--Append #disqus_thread to the href attribute in your links. This will tell Disqus which links to look up and return the comment count. For example: <a href="http://foo.com/bar.html#disqus_thread">Link</a>.-->
-      <script>
-        /**
-         *  RECOMMENDED CONFIGURATION VARIABLES: EDIT AND UNCOMMENT THE SECTION BELOW TO INSERT DYNAMIC VALUES FROM YOUR PLATFORM OR CMS.
-         *  LEARN WHY DEFINING THESE VARIABLES IS IMPORTANT: https://disqus.com/admin/universalcode/#configuration-variables    */
+		<br /><br /><br />
+		<hr id="footer"/>
+		
+		<!--disqus-->
+		
+		<disqus>
+			<div id="disqus_thread"></div>
+			<!--Append #disqus_thread to the href attribute in your links. This will tell Disqus which links to look up and return the comment count. For example: <a href="http://foo.com/bar.html#disqus_thread">Link</a>.-->
+			<script>
+				/**
+				 *	RECOMMENDED CONFIGURATION VARIABLES: EDIT AND UNCOMMENT THE SECTION BELOW TO INSERT DYNAMIC VALUES FROM YOUR PLATFORM OR CMS.
+				 *	LEARN WHY DEFINING THESE VARIABLES IS IMPORTANT: https://disqus.com/admin/universalcode/#configuration-variables		*/
 
-        var disqus_config = function () {
-          this.page.url = PAGE_URL; // Replace PAGE_URL with your page's canonical URL variable
-          this.page.identifier = "apricot-glimmer-chokeberry-glitch-me"; // Replace PAGE_IDENTIFIER with your page's unique identifier variable
-        };
+				var disqus_config = function () {
+					this.page.url = PAGE_URL; // Replace PAGE_URL with your page's canonical URL variable
+					this.page.identifier = "apricot-glimmer-chokeberry-glitch-me"; // Replace PAGE_IDENTIFIER with your page's unique identifier variable
+				};
 
-        (function () {
-          // DON'T EDIT BELOW THIS LINE
-          var d = document,
-            s = d.createElement("script");
-          s.src =
-            "https://apricot-glimmer-chokeberry-glitch-me.disqus.com/embed.js"; //edit?
-          s.setAttribute("data-timestamp", +new Date());
-          (d.head || d.body).appendChild(s);
-        })();
-      </script>
-      <noscript>
-        Please enable JavaScript to view the
-        <a href="https://disqus.com/?ref_noscript"
-          >comments powered by Disqus.</a
-        >
-      </noscript>
-      <script
-        id="dsq-count-scr"
-        src="//apricot-glimmer-chokeberry-glitch-me.disqus.com/count.js"
-        async
-      ></script> <!--edit src?-->
-    </disqus>
-  </body>
+				(function () {
+					// DON'T EDIT BELOW THIS LINE
+					var d = document,
+						s = d.createElement("script");
+					s.src =
+						"https://apricot-glimmer-chokeberry-glitch-me.disqus.com/embed.js"; //edit?
+					s.setAttribute("data-timestamp", +new Date());
+					(d.head || d.body).appendChild(s);
+				})();
+			</script>
+			<noscript>
+				Please enable JavaScript to view the
+				<a href="https://disqus.com/?ref_noscript"
+					>comments powered by Disqus.</a
+				>
+			</noscript>
+			<script
+				id="dsq-count-scr"
+				src="//apricot-glimmer-chokeberry-glitch-me.disqus.com/count.js"
+				async
+			></script> <!--edit src?-->
+		</disqus>
+	</body>
 </html>
