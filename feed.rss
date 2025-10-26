@@ -2,7 +2,7 @@
 <rss version="2.0">
 	<channel>
 		<title>small-def (main rss)</title>
-		<link>https://zaydiscool777/github.io/</link>
+		<link>https://zaydiscool777.github.io/</link>
 		<description>funny syndication</description>
 		<language>en-us</language>
 		<docs>https://www.rssboard.org/rss-specification</docs>
@@ -20,34 +20,35 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS “AS IS” 
 		</copyright>
 		<item>
 			<author>zaydiscool777@gmail.com</author>
-			<title>convey (the esolang)</title>
-			<link>https://zaydiscool777/github.io/p/convey.html</link>
+			<title>odd code i found</title>
+			<link>https://zaydiscool777.github.io/p/geekcode.html</link>
+		</item>
+		<item>
+			<author>zaydiscool777@gmail.com</author>
+			<title>small latex test</title>
+			<link>https://zaydiscool777.github.io/test/latex.html</link>
+		</item>
+		<item>
+			<author>zaydiscool777@gmail.com</author>
+			<title>&gt;&gt;= (about monads)</title>
+			<link>https://zaydiscool777.github.io/p/monad.html</link>
+		</item>
+		<item>
+			<author>zaydiscool777@gmail.com</author>
+			<title>funny thin( i found :)</title>
+			<link>https://zaydiscool777.github.io/p/abc.html</link>
 		</item>
 		<item>
 			<author>zaydiscool777@gmail.com</author>
 			<title>testing environment</title>
 			<description>i was going to make this an api that gives you data for that day, like stocks, weather, time, etc., but i don't have enough time for it.</description>
-			<link>https://zaydiscool777/github.io/test/tentative.html</link>
+			<link>https://zaydiscool777.github.io/test/tentative.html</link>
 		</item>
 		<item>
 			<author>zaydiscool777@gmail.com</author>
-			<title>funny thin( i found :)</title>
-			<link>https://zaydiscool777/github.io/p/abc.html</link>
+			<title>convey (the esolang)</title>
+			<link>https://zaydiscool777.github.io/p/convey.html</link>
 		</item>
-		<item>
-			<author>zaydiscool777@gmail.com</author>
-			<title>&gt;&gt;= (about monads)</title>
-			<link>https://zaydiscool777/github.io/p/monad.html</link>
-		</item>
-		<item>
-			<author>zaydiscool777@gmail.com</author>
-			<title>small latex test</title>
-			<link>https://zaydiscool777/github.io/test/latex.html</link>
-		</item>
-		<item>
-			<author>zaydiscool777@gmail.com</author>
-			<title>odd code i found</title>
-			<link>https://zaydiscool777/github.io/p/geekcode.html</link>
-		</item>
+
 	</channel>
 </rss>
