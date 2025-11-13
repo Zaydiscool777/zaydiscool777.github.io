@@ -14,10 +14,7 @@
 	<header id="header">
 		<div id="back1">
 		<div class="grad">
-			<a href="../"><img 
-			src="../fotoSob.jpg" 
-			id="logo"></a>
-			hellocccd>>67
+			<a href="../">hellocccd&gt;&gt;67</a>
 		</div>
 		</div>
 	</header>
@@ -35,7 +32,7 @@
 			This article is on how to use this trick to do division faster than <samp>idiv</samp>,
 			using the Granlund-Montgomery algorithm.
 		</p>
-		<div class="latex" style="text-align:center">
+		<div class="latex">
 			For
 				$$q = \lfloor \frac{n}{d} \rfloor,$$
 			we can instead use
@@ -53,8 +50,9 @@
 			We can now solve for M using
 				$$M = \lceil \frac{2^{64 + s}}{d} \rceil,$$
 			using the smallest non-zero natural for s, so the formula works for all n.
-			Finding s can usually be done by applying many inputs, but there is a systematic
-			way of finding s.
+			Finding s is usually done on an incremental basis.
+			Checking s can usually be done by applying many inputs and checking them all, but there is a systematic
+			way of checking s.
 			With
 				$$0 \le r = n - qd \le d - 1,$$
 			r is the remainder, so
@@ -63,16 +61,16 @@
 				$$nM = qdM + rM.$$
 			Now, change
 				$$dM \to 2^{p} - e,$$
-			and then, using the distributive property and associativity property,
+			(defining e) and then, using the distributive property and associativity property,
 				$$nM = q2^{p} + (qe + rM).$$
-			If we floor divide by 2^{p}, and then subtract q on both sides, we get
+			If we floor divide by 2^p, and then subtract q on both sides, we get
 				$$\lfloor \frac{nM}{2^{p}} \rfloor - q = \lfloor \frac{qe + rM}{2^{p}} \rfloor.$$
 			(q is not floored, since it is an integer.)
 			Since we defined q as the minuend they are both the same.
-			Thus, on the right-hand side, if s and M really are correct, should be 0.
+			Thus, on the right-hand side, if s and M really are correct, should be $0$.
 			With the largest quotient
 				$$0 \le q \le Q = \frac{2^{b} - 1}{d},$$
-			We can substitute the maximums to get
+			We can substitute the maxima to get this inequality for checking s and M:
 				$$Qe + (d - 1)M \le 2^{p} - 1.$$
 		</div>
 		<p>
@@ -90,6 +88,23 @@
 			for <a href="https://gmplib.org/~tege/divcnst-pldi94.pdf">this paper</a>
 			on what I talked about, called "Division by Invariant Integers using Multiplication".
 		</p>
+		<code>
+			mov r8, rax ; for remainder
+			mov rdx, 0xCCCC_CCCC_CCCC_CCCD ; 1/5
+			mul rdx
+			mov rbx, rdx ; for remainder
+			shr rbx, 3
+
+			vs.
+
+			mov rax, r8
+			mov rdx, rbx
+			shl rdx, 3
+			lea rdx, [rdx + rbx * 2]
+			sub rax, rdx
+			mov rdx, rbx
+			xchg rax, rdx
+		</code>
 	</article>
 
 	<br><br><br>
