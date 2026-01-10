@@ -1,3 +1,16 @@
+	/* rules? */
+
+@keyframes blinker {
+	100% {
+		opacity: 0;
+	}
+}
+
+@font-face {
+	font-family: "sitelen";
+	src: url("./media/fairfax-pona-hd.ttf");
+}
+
 	/* highlight for "bug"-finding */
 
 put-tag-or-id-or-class-here {
@@ -223,8 +236,10 @@ form {
 	animation: blinker 1s linear infinite;
 }
 
-@keyframes blinker {
-	100% {
-		opacity: 0;
-	}
+.sitp {
+	font-family: "sitelen"
+}
+
+.sitx {
+	font-family: sans-serif;
 }
