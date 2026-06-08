@@ -70,6 +70,16 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS “AS IS” 
 			<description>somewhere in ikea... division by constants faster than the speed of light</description>
 			<link>https://zaydiscool777.github.io/p/fastdiv.html</link>
 		</item>
+		<item>
+			<author>zaydiscool777@gmail.com</author>
+			<title>diary</title>
+			<link>https://zaydiscool777.github.io/p/2026diary.html</link>
+		</item>
+		<item>
+			<author>zaydiscool777@gmail.com</author>
+			<title>lambda calculus report</title>
+			<link>https://zaydiscool777.github.io/p/lambdatex.html</link>
+		</item>
 
 	</channel>
 </rss>
