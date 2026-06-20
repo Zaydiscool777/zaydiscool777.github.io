@@ -30,7 +30,7 @@
 		
 		<article>
 			<p>
-			… is a somewhat codegolf-y 2D esolang based on conveyor belts, that will
+			… is a somewhat code-golf-y 2D esolang based on conveyor belts, that will
 			push values around in a factory.
 		</p>
 		Here are some examples made by the creator himself:
@@ -47,7 +47,7 @@
 					</td>
 				</tr>
 				<tr>
-					<td>All Fibboncci numbers</td>
+					<td>All Fibonacci numbers</td>
 					<td>
 						<pre>
 1"&lt;
@@ -106,7 +106,7 @@
 			Every function has a fixed number of input and output ports, e.g.
 			<kbd>+</kbd> has 2 inputs and 1 output. Conveyor belt directions are
 			inferred to connect each input to an output port. A program that is
-			ambigious is erroneous. In this case, the conveyor belt operators are, as
+			ambiguous is erroneous. In this case, the conveyor belt operators are, as
 			needed: <kbd>&gt; v &lt; ^</kbd>. They output into the direction they are
 			pointing to and take exactly one input from any other direction.
 		</p>
@@ -122,7 +122,7 @@
 			type. Whenever there are 2 ports of the same type, there is a distinction
 			between the main and the side port. One example, <kbd>-</kbd> has 2 input
 			ports and 1 output port. When both input ports have values, it will output
-			the main port value minus the side port value. Or, in otherwords, "x - y".
+			the main port value minus the side port value. Or, in other words, "x - y".
 		</p>
 
 		<table>
@@ -234,7 +234,7 @@
 		>
 		<sm>(What do each of the headers mean?)
 		 <def> The in and out headers show how many of them need to be
-			put in or will come out simutaneously (unless the function cues).
+			put in or will come out simultaneously (unless the function cues).
 			The _x and _y shows what each function treats the default value
 			(<kbd>_</kbd>) like.</def> 
 		</sm>
@@ -335,7 +335,7 @@
 				</tr>
 				<tr>
 					<td>}</td>
-					<td>Ouput</td>
+					<td>Output</td>
 					<td>1</td>
 					<td>0</td>
 					<td>\n</td>
@@ -499,7 +499,7 @@
 					<td>1</td>
 					<td></td>
 					<td></td>
-					<td>y</td>
+					<td><sm>y <def>(as far as I know, this seems to act just like `:.)</def></sm></td>
 				</tr>
 				<tr>
 					<td>+</td>
@@ -544,7 +544,7 @@
 					<td>1</td>
 					<td>0</td>
 					<td></td>
-					<td>x × y</td>
+					<td>x &times; y</td>
 				</tr>
 				<tr>
 					<td>*.</td>
@@ -552,7 +552,7 @@
 					<td>2</td>
 					<td>1</td>
 					<td>0</td>
-					<td><sm>e<def> (euler's number)</def></sm></td>
+					<td><sm>e<def> (Euler's number)</def></sm></td>
 					<td>y<sup>x</sup></td>
 				</tr>
 				<tr>
@@ -562,7 +562,7 @@
 					<td>1</td>
 					<td></td>
 					<td></td>
-					<td>x ÷ y, or iff y is _, then signum(x)</td>
+					<td>if y is _, then signum(x), otherwise, x &div; y</td>
 				</tr>
 				<tr>
 					<td>%.</td>
@@ -570,7 +570,7 @@
 					<td>2</td>
 					<td>1</td>
 					<td>0</td>
-					<td><sm>e<def> (euler's number)</def></sm></td>
+					<td><sm>e<def> (Euler's number)</def></sm></td>
 					<td>ln<sub>y</sub>(x)</td>
 				</tr>
 				<tr>
@@ -580,7 +580,7 @@
 					<td>1</td>
 					<td></td>
 					<td></td>
-					<td>x mod y, or iff y is _, then |x|</td>
+					<td>if y is _, then |x|, otherwise x mod y</td>
 				</tr>
 				<tr>
 					<td>=</td>
@@ -657,7 +657,7 @@
 			</tbody>
 		</table>
 			<hr>
-			This is a remaster (or really just an html-ified version) of the documentation of the progamming language (that could be esoteric),
+			This is a remaster (or really just an HTML-ified version) of the documentation of the programming language (that could be esoteric),
 			 convey. Thanks to xash for the original docs. you can access his itch at <a href="https://xash.itch.io">
 			xash.itch.io</a>. The interpreter? is <a href="https://xn--wxa.land/convey/run.html">here</a>, and
 			 <a href="mailto:xash@xn--wxa.land">this</a> is his mail. (he also has a broken rss feed)
