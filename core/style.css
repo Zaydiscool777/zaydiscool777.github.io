@@ -30,11 +30,6 @@ mono {
 	/*https://stackoverflow.com/questions/38781089/font-family-monospace-monospace*/
 }
 
-code {
-	font-family: monospace;
-	background-color: lightgray;
-}
-
 	/* headers and big text */
 
 #big {
