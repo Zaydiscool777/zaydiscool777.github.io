@@ -80,6 +80,11 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS “AS IS” 
 			<title>lambda calculus report</title>
 			<link>https://zaydiscool777.github.io/p/lambdatex.html</link>
 		</item>
+		<item>
+			<author>zaydiscool777@gmail.com</author>
+			<title>prolog interpreter in haskell</title>
+			<link>https://zaydiscool777.github.io/p/prolog_i.html</link>
+		</item>
 
 	</channel>
 </rss>

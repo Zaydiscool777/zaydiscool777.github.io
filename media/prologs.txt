@@ -1,0 +1,104 @@
+     1	module Prolog (
+     2	  Sym(..), Term(..), Rule(..), Env(..), Res(..), Tagged(..),
+     3	  subst, (-?>), unify, solve,
+     4	  matches, strip,
+     5	  sym, fact, var, query) where -- https://hackage.haskell.org/package/NanoProlog-0.3
+     6	import qualified Data.Map as M
+     7	import Data.Foldable (foldrM)
+     8	import Data.Maybe (catMaybes)
+     9	
+    10	type Sym = String
+    11	type Tag = Int
+    12	type VarD = (Sym, [Tag]) -- Var data
+    13	data Term = Var VarD | Fun Sym [Term] deriving Eq
+    14	data Rule = Term :- [Term] deriving Eq
+    15	type Env = M.Map VarD Term
+    16	data Res = Yes Env | Do [(Rule, Res)] deriving Eq
+    17	
+    18	subst :: Env -> Term -> Term -- substitiution
+    19	subst e v@(Var x) = maybe v (subst e) (M.lookup x e)
+    20	subst e (Fun x cs) = Fun x (map (subst e) cs)
+    21	
+    22	class Tagged t where tag :: Tag -> t -> t -- variable renaming apart
+    23	instance Tagged Term where
+    24	  tag t (Var (x, y)) = Var (x, t:y)
+    25	  tag t (Fun x y) = Fun x (map (tag t) y)
+    26	instance Tagged Rule where tag t (c :- cs) = tag t c :- map (tag t) cs
+    27	
+    28	(-?>) :: VarD -> Term -> Bool -- occurs-check (negated)
+    29	x -?> Var y = x /= y
+    30	x -?> Fun _ y = all (x -?>) y
+    31	
+    32	matches :: (Term, Term) -> Env -> Maybe Env -- replacement / smaller check before unify
+    33	matches (t, u) e = subst e t ?- u where
+    34	  (?-) :: Term -> Term -> Maybe Env
+    35	  Var x ?- y | x -?> y = Just (M.insert x y e)
+    36	  Fun x xc ?- Fun y yc
+    37	    | x == y && length xc == length yc
+    38	    = foldrM matches e (zip xc yc)
+    39	  _ ?- _ = Nothing
+    40	
+    41	unify :: (Term, Term) -> Env -> Maybe Env -- inference between terms
+    42	unify (t, u) e = subst e t ? subst e u where
+    43	  (?) :: Term -> Term -> Maybe Env
+    44	  Var x ? y | x -?> y = Just (M.insert x y e)
+    45	  x ? Var y | y -?> x = Just (M.insert y x e)
+    46	  Fun x xc ? Fun y yc
+    47	    | x == y && length xc == length yc
+    48	    = foldrM unify e (zip xc yc)
+    49	  _ ? _ = Nothing
+    50	
+    51	solve :: [Rule] -> [Term] -> Tag -> Env -> Res -- the crux of prolog
+    52	solve _ [] _ e = Yes e
+    53	solve rs (t:ts) tg e = Do (catMaybes
+    54	  [(r,) . solve rs (cs ++ ts) (succ tg) <$> unify (t, c) e | r@(c :- cs) <- map (tag tg) rs])
+    55	
+    56	strip :: Res -> [Env]
+    57	strip (Yes y) = [y]
+    58	strip (Do x) = x >>= strip . snd
+    59	
+    60	-- shorthands
+    61	var x = Var (x, [])
+    62	sym x = Fun x []
+    63	fact x y = Fun x y :- []
+    64	query x y = solve x [y] 0 M.empty
+    65	module PrologE where
+    66	import Prolog
+    67	import qualified Data.Map as M
+    68	import Data.Foldable (foldrM)
+    69	import Data.List (intercalate)
+       
+    70	matches :: (Term, Term) -> Env -> Maybe Env -- looser unify?
+    71	matches (t, u) e = subst e t ?- u where
+    72	  (?-) :: Term -> Term -> Maybe Env
+    73	  Var x ?- y | x -?> y = Just (M.insert x y e)
+    74	  Fun x xc ?- Fun y yc
+    75	    | x == y && length xc == length yc
+    76	    = foldrM matches e (zip xc yc)
+    77	  _ ?- _ = Nothing
+       
+    78	-- io
+    79	instance Show Term where
+    80	  show (Var (x, [])) = x
+    81	  show (Var (x, t)) = x ++ show t
+    82	  show (Fun x []) = x
+    83	  show (Fun x y) = x ++ '(' : intercalate ", " (map show y) ++ ")"
+    84	instance Show Rule where
+    85	  show (x :- y) = show x ++ " :- " ++ intercalate ", " (map show y) ++ "."
+    86	showEnv :: Env -> String
+    87	showEnv x = unlines ("YES":[v ++ " <- " ++ show (subst x (Var s)) | (s@(v, []), _) <- M.toList x])
+    88	page :: [String] -> IO ()
+    89	page = foldr (\x -> (putStr x >> getLine >>)) (putStrLn "NO") -- replaces: putStr . unlines
+       
+    90	-- Read instances...are not easy without non-base libraries!
+       
+    91	-- main
+    92	rules = [
+    93	  fact "edge" [sym "a", sym "b"],
+    94	  fact "edge" [sym "b", sym "c"],
+    95	  Fun "path" [var "X", var "Y"] :- [Fun "edge" [var "X", var "Y"]],
+    96	  Fun "path" [var "X", var "Y"] :- [Fun "edge" [var "X", var "Z"], Fun "path" [var "Z", var "Y"]]
+    97	  ]
+    98	goal = Fun "path" [sym "a", var "X"]
+    99	solution = strip (query rules goal)
+   100	main = page (map showEnv solution)

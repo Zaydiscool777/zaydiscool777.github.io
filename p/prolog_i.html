@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<link rel="icon" href="../fotoSob.jpg">
+	<link rel="stylesheet" href="../style.css">
+	<script src="../script.js" defer></script>
+	<title>google classic site template</title>
+	</head>
+	<body>
+	<header id="header">
+		<div id="back1">
+		<div class="grad">
+			<a href="../"><img 
+			src="./fotoSob.jpg" 
+			id="logo"></a>
+			>:>-=
+		</div>
+		</div>
+	</header>
+	<nav>
+		<a href="#footer"><button>bottom</button></a>
+		<a href="#header"><button id="btop">top</button></a>
+		<a href="https://github.com/Zaydiscool777/zaydiscool777.github.io" style="all:initial;">
+		<button>View the source!</button>
+		</a>
+	</nav>
+	
+	<article>
+		<p>Note: some words can be hovered over! They don't have any different formatting from other things.</p>
+		<p>
+			This is a simple? guide on understanding a very small implementation of
+			<a href="https://en.wikipedia.org/wiki/Prolog">Prolog</a>
+			in Haskell.
+			I cannot be sure if this will be similar to any serious Prolog implementation,
+			but I can tell you that this is based primarily off
+			<a href="https://hackage.haskell.org/package/NanoProlog-0.3">NanoProlog</a>,
+			<sm>with a touch of
+			<a href="https://hackage.haskell.org/package/prolog-0.3.2">"prolog"</a>
+			<def>, specifically for how Var's tags are built into the data itself</def></sm>
+			<a href="https://dl.acm.org/doi/10.1145/321250.321253">"A Machine-Oriented Logic Based on the Resolution Principle"</a>
+			may or may not related to this.
+		</p>
+		<p>
+			To start off, we can first instantiate the data of some grammar in Prolog.
+		</p>
+		
+<pre><code>import qualified Data.Map as M
+
+type Sym = String -- a symbol
+data Term =
+	Var Sym -- X, Hello
+	| Fun Sym [Term] -- true, test(X, Y), bob
+	deriving Eq
+data Rule =
+	Term -- head function; any head must be true for function to be
+	<a href="https://en.wikipedia.org/wiki/Horn_clause">:-</a> [Term] -- clauses; all must be true for head to be
+	deriving Eq
+type Env = M.Map Sym Term -- variables, and what they stand for (bindings)
+data Res =
+	Yes Env -- goal is satisfied under these bindings
+	| Do [(Rule, Res)] -- for each rule listed, using the rule...
+	deriving Eq</code></pre>
+
+		<p>
+			Now, let's write our first function,
+			<a href="https://en.wikipedia.org/wiki/Substitution_(logic)"><code>subst</code></a>.
+			Given a binding environment and a term, it replaces all variables in the term with functions using the bindings.
+			It does so as much as it can (so not simply looking it up once), and also recursively.
+		</p>
+
+<pre><code>subst :: Env -&gt; Term -&gt; Term -- substitiution
+subst e v@(Var x) = maybe v (subst e) (M.lookup x e)
+subst e (Fun x cs) = Fun x (map (subst e) cs)</code></pre>
+
+		<p>
+			Since <code>M.lookup</code> is of type <code>Maybe</code>, we can use that to fall back in case of failure.
+			This allows us to repeat lookups multiple times, so that the result, if it is there, is in a sense "atomic".
+		</p>
+
+		<p>
+			Next up is
+			<a href="https://en.wikipedia.org/wiki/Unification_(computer_science)
+				#Application:_unification_in_logic_programming"><code>unify</code></a>.
+			Given two terms and a binding environment, it may, if the two terms could be equal to each other,
+			create a new environment, adding the required bindings to do so.
+		</p>
+
+<pre><code>import Data.Foldable (foldrM)
+
+unify :: (Term, Term) -&gt; Env -&gt; Maybe Env
+unify (t, u) e = subst e t ? subst e u where
+	(?) :: Term -&gt; Term -&gt; Maybe Env
+	Var x ? y = Just (M.insert x y e)
+	x ? Var y = Just (M.insert y x e)
+	Fun x xc ? Fun y yc
+		| x == y && length xc == length yc
+		= foldrM unify e (zip xc yc)
+	_ ? _ = Nothing</code></pre>
+
+		<p>
+			Let me walk through this one.
+		</p>
+		<ol>
+			<li>
+				Both terms are turned into a substituted form, so
+				the function can deal with just free variables, so it can bind them.
+			</li>
+			<li>
+				If one of the terms is a variable, then it can be binded to
+				the other term. If this is the case, an environment can be returned
+				that is just the give one with the extra binding.
+			</li>
+			<li>
+				If both terms are the same function with the same amount of inputs,
+				There is an attempt to unify each corresponding pair of arguments,
+				and make sure they all are able to equal each other.
+
+				<ul>
+					<li>
+						The action that <sm><code>foldrM</code>
+							<def>(which actually uses <code><em>foldl</em></code> in its definition!)</def>
+						</sm> does is effectively:
+<i><pre><code>let [(a, a'), (b, b')...(y, y'), (z, z')] = zip xc yc in do
+	e0 &lt;- unify (z, z') e
+	e1 &lt;- unify (y, y') e0
+	...
+	e'1 &lt;- unify (b, b') e'2
+	e' &lt;- unify (a, a') e'1
+	e'</code></pre></i>
+					</li>
+					<li>
+						If any of the calls to <code>unify</code> inside of <code>?</code> cannot return
+						an environment, <code>?</code> can't bind that argument, so
+						it can't bind the function either.
+					</li>
+				</ul>
+			</li>
+			<li>
+				If none of the above is true, then nothing else can be done, so
+				an environment is not returned.
+			</li>
+		</ol>
+
+		<p>
+			However, perhaps we want to make sure we don't get into infinite loops like:
+
+<pre><code>X :- X.
+f(X) :- f(f(X)).</code></pre>
+
+			To prevent this, we can check recursively for whether
+			the variable to be binded
+			<a href="https://en.wikipedia.org/wiki/Occurs_check">occurs</a>
+			in the other term:
+
+<pre><code>(-?&gt;) :: Sym -&gt; Term -&gt; Bool -- occurs-check (negated)
+x -?&gt; Var y = x /= y
+x -?&gt; Fun _ y = all (x -?&gt;) y
+
+unify :: (Term, Term) -&gt; Env -&gt; Maybe Env
+unify (t, u) e = subst e t ? subst e u where
+	(?) :: Term -&gt; Term -&gt; Maybe Env
+	Var x ? y | x -?&gt; y = Just (M.insert x y e)
+	x ? Var y | y -?&gt; x = Just (M.insert y x e)
+	Fun x xc ? Fun y yc
+		| x == y && length xc == length yc
+		= foldrM unify e (zip xc yc)
+	_ ? _ = Nothing</code></pre>
+		</p>
+
+		<p>
+			Now for the function with the biggest job:
+			<a href="https://en.wikipedia.org/wiki/Resolution_(logic)"><code>solve</code></a>.
+			Given a set of rules to use, a set of terms to prove, and a binding enviroment,
+
+			If <code>unify</code> was the rising action, this is the climax.
+		</p>
+
+<pre><code>import Data.Maybe (catMaybes)
+
+solve :: [Rule] -&gt; [Term] -&gt; Env -&gt; Res
+solve _ [] e = Yes e
+solve rs (t:ts) e = Do (catMaybes
+	[(r,) . solve rs &lt;$&gt; unify (t, c) e | r@(c :- cs) &lt;- rs])</code></pre>
+
+		<p>
+			This is really concise, so let's expand it.
+		</p>
+
+<pre><code>solve :: [Rule] -&gt; [Term] -&gt; Env -&gt; Res
+solve _ [] env = Yes env
+solve rules (term : rest_terms) env =
+	Do [x | Just x &lt;- [do
+		new_env &lt;- unify (term, head) env
+		Just (this_rule, solve rules (body ++ rest_terms) new_env)
+		| this_rule@(head :- body) &lt;- rules]]</code></pre>
+
+		<p>
+			I think I will leave the understanding of this function as an exercise for the reader.
+		</p>
+
+		<p>
+			However, what I won't leave out is how there is a major flaw with how
+			the program is currently written, back when <code>M.insert</code> was used.
+			If a variable has the same name as a differently binded variable, which
+			can happen for example in a recursive function, the newer variable
+			<strong>overwrites</strong> the older variable.
+		</p>
+
+		<p>
+			To fix this, we use a different definition for variables, that uses "tags":
+
+<pre><code>type Tag = Int
+type VarD = (Sym, [Tag]) -- Var data
+data Term = Var VarD | Fun Sym [Term] deriving Eq
+type Env = M.Map VarD Term
+
+class Tagged t where tag :: Tag -> t -> t -- variable renaming apart
+instance Tagged Term where
+	tag t (Var (x, y)) = Var (x, t:y)
+	tag t (Fun x y) = Fun x (map (tag t) y)
+instance Tagged Rule where tag t (c :- cs) = tag t c :- map (tag t) cs</code></pre>
+
+			This also changes how <code>solve</code> works.
+
+<pre><code>solve :: [Rule] -&gt; [Term] -&gt; Tag -&gt; Env -&gt; Res
+solve _ [] _ e = Yes e
+solve rs (t:ts) tg e = Do (catMaybes
+	[(r,) . solve rs (cs ++ ts) (succ tg) &lt;$&gt; unify (t, c) e | r@(c :- cs) &lt;- map (tag tg) rs])</code></pre>
+
+			<code>solve</code> now also increments through a "tag"
+			through the tree-like structure of clauses and terms, so any similarly named variables
+			seperated even once are marked different, and therefore treated differently.
+		</p>
+
+		<p>
+			From this point, things calm down. Next is <code>strip</code>, which
+			takes all the <code>Yes</code>es and compiles them,
+			leaving just the variable bindings.
+		</p>
+
+<pre><code>strip :: Res -&gt; [Env]
+strip (Yes y) = [y]
+strip (Do x) = x &gt;&gt;= strip . snd</code></pre>
+
+		<p>
+			When the result is <code>Do</code>, it takes all the results that can follow,
+			stripping them for environments, and combining the outputs together.
+		</p>
+
+		<p>
+			A set of shorthands can also be defined for using the main functions.
+		</p>
+
+<pre><code>var x = Var (x, [])
+sym x = Fun x []
+fact x y = Fun x y :- []
+query x y = solve x [y] 0 M.empty</code></pre>
+
+		<p>
+			Something can be noticed here: since any variable not provided by the user
+			will be tagged at some point, that means that the user's variables can be
+			identified by an empty tag list.
+
+			We can write a function to show environments in a Prolog-like way using this,
+			so that the user won't see any intermediate variables that were binded.
+		</p>
+
+<pre><code>showEnv :: Env -&gt; String
+showEnv x = unlines ("YES":[v ++ " &lt;- " ++ show (subst x (Var s)) | (s@(v, []), _) &lt;- M.toList x])</code></pre>
+
+		<p>
+			Of course, in order to use this function, we need to write <code>Show</code> instances
+			for some other datatypes first. Along the way, we can also write a function to
+			sequence the strings into a sort of pager.
+		</p>
+
+<pre><code>import Data.List (intercalate)
+
+instance Show Term where
+	show (Var (x, [])) = x
+	show (Var (x, t)) = x ++ show t
+	show (Fun x []) = x
+	show (Fun x y) = x ++ '(' : intercalate ", " (map show y) ++ ")"
+instance Show Rule where
+	show (x :- y) = show x ++ " :- " ++ intercalate ", " (map show y) ++ "."
+page :: [String] -&gt; IO ()
+page = foldr (\x -&gt; (putStr x &gt;&gt; getLine &gt;&gt;)) (putStrLn "NO")</code></pre>
+
+		<p>
+			While I haven't implemented <code>Read</code> instances yet, at least we are
+			now able to write programs in Prolog-like structures in Haskell!
+		</p>
+
+<pre><code>rules = [
+  fact "edge" [sym "a", sym "b"],
+  fact "edge" [sym "b", sym "c"],
+  Fun "path" [var "X", var "Y"] :- [Fun "edge" [var "X", var "Y"]],
+  Fun "path" [var "X", var "Y"] :- [Fun "edge" [var "X", var "Z"], Fun "path" [var "Z", var "Y"]]
+  ]
+goal = Fun "path" [sym "a", var "X"]
+solution = strip (query rules goal)
+main = page (map showEnv solution)</code></pre>
+
+<pre>~/bin/l/hs$ runghc PrologE.hs
+YES
+X &lt;- b
+<kbd style="color:gainsboro">Enter</kbd>
+YES
+X &lt;- c
+<kbd style="color:gainsboro">Enter</kbd>
+NO
+~/bin/l/hs$ </pre>
+
+		<p>And that's it! We have made a simple Prolog interpreter that safely handles variables,
+			unifies, and solves for goals, in 100 lines!
+		</p>
+
+<pre>~/bin/l/hs$ nl Prolog*</pre>
+<iframe src="../media/prologs.txt" style="width: 106ch;"></iframe>
+
+		<p>
+			I have split the functions into two seperate files, and
+			there are a few extra things in those version of the files I've written,
+			so it's probably less for you.
+		</p>
+
+		<p>
+			One thing I haven't added is negation as failure, but I suppose I will add that
+			when I revisit this.
+		</p>
+
+	</article>
+	<br><br><br>
+	<hr id="footer">
+	
+	<!--disqus-->
+
+	</body>
+</html>
